@@ -49,6 +49,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import in.uncod.android.bypass.Bypass;
 import io.plaidapp.R;
+import io.plaidapp.databinding.AboutIconBinding;
 import io.plaidapp.databinding.AboutPlaidBinding;
 import io.plaidapp.ui.widget.ElasticDragDismissFrameLayout;
 import io.plaidapp.ui.widget.InkPageIndicator;
@@ -99,7 +100,7 @@ public class AboutActivity extends Activity {
         private View aboutPlaid;
         TextView plaidDescription;
         private View aboutIcon;
-        @Nullable @BindView(R.id.icon_description) TextView iconDescription;
+        TextView iconDescription;
         private View aboutLibs;
         @Nullable @BindView(R.id.libs_list) RecyclerView libsList;
 
@@ -168,8 +169,9 @@ public class AboutActivity extends Activity {
                     return aboutPlaid;
                 case 1:
                     if (aboutIcon == null) {
-                        aboutIcon = layoutInflater.inflate(R.layout.about_icon, parent, false);
-                        ButterKnife.bind(this, aboutIcon);
+                        AboutIconBinding binding = AboutIconBinding.inflate(layoutInflater);
+                        aboutIcon = binding.getRoot();
+                        iconDescription = binding.iconDescription;
                         CharSequence icon0 = resources.getString(R.string.about_icon_0);
                         CharSequence icon1 = markdown.markdownToSpannable(resources
                                 .getString(R.string.about_icon_1), iconDescription, null);
