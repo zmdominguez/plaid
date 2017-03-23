@@ -53,6 +53,7 @@ import io.plaidapp.databinding.AboutIconBinding;
 import io.plaidapp.databinding.AboutLibIntroBinding;
 import io.plaidapp.databinding.AboutLibsBinding;
 import io.plaidapp.databinding.AboutPlaidBinding;
+import io.plaidapp.databinding.LibraryBinding;
 import io.plaidapp.ui.widget.ElasticDragDismissFrameLayout;
 import io.plaidapp.ui.widget.InkPageIndicator;
 import io.plaidapp.util.HtmlUtils;
@@ -256,31 +257,15 @@ public class AboutActivity extends Activity {
         }
 
         private @NonNull LibraryHolder createLibraryHolder(ViewGroup parent) {
-            final LibraryHolder holder = new LibraryHolder(LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.library, parent, false));
-            View.OnClickListener clickListener = new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    int position = holder.getAdapterPosition();
-                    if (position == RecyclerView.NO_POSITION) return;
-                    CustomTabActivityHelper.openCustomTab(
-                            host,
-                            new CustomTabsIntent.Builder()
-                                    .setToolbarColor(ContextCompat.getColor(host, R.color.primary))
-                                    .addDefaultShareMenuItem()
-                                    .build(), Uri.parse(libs[position - 1].link));
-
-                }
-            };
-            holder.itemView.setOnClickListener(clickListener);
-            holder.link.setOnClickListener(clickListener);
+            final LibraryHolder holder = new LibraryHolder(LibraryBinding.inflate(LayoutInflater.from(parent.getContext()),
+                    parent, false), host);
             return holder;
         }
 
         @Override
         public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
             if (getItemViewType(position) == VIEW_TYPE_LIBRARY) {
-                bindLibrary((LibraryHolder) holder, libs[position - 1]); // adjust for intro
+                ((LibraryHolder) holder).bind(libs[position - 1], circleCrop);
             } else {
                 ((LibraryIntroHolder)holder).bind();
             }
@@ -296,29 +281,50 @@ public class AboutActivity extends Activity {
             return libs.length + 1; // + 1 for the static intro view
         }
 
-        private void bindLibrary(final LibraryHolder holder, final Library lib) {
-            holder.name.setText(lib.name);
-            holder.description.setText(lib.description);
-            DrawableRequestBuilder<String> request = Glide.with(holder.image.getContext())
+    }
+
+    static class LibraryHolder extends RecyclerView.ViewHolder {
+        private final LibraryBinding libraryBinding;
+        private Activity host;
+
+        LibraryHolder(LibraryBinding binding, Activity host) {
+            super(binding.getRoot());
+            this.libraryBinding = binding;
+            this.host = host;
+        }
+
+        public void bind(Library lib, CircleTransform circleCrop) {
+            bindLibrary(libraryBinding, lib, circleCrop);
+            libraryBinding.executePendingBindings();
+        }
+
+        private void bindLibrary(final LibraryBinding binding, final Library lib, CircleTransform circleCrop) {
+            binding.libraryName.setText(lib.name);
+            binding.libraryDescription.setText(lib.description);
+            DrawableRequestBuilder<String> request = Glide.with(binding.libraryImage.getContext())
                     .load(lib.imageUrl)
                     .placeholder(R.drawable.avatar_placeholder);
             if (lib.circleCrop) {
                 request.transform(circleCrop);
             }
-            request.into(holder.image);
-        }
-    }
+            request.into(binding.libraryImage);
 
-    static class LibraryHolder extends RecyclerView.ViewHolder {
+            View.OnClickListener clickListener  = new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int position = getAdapterPosition();
+                    if (position == RecyclerView.NO_POSITION) return;
+                    CustomTabActivityHelper.openCustomTab(
+                            host,
+                            new CustomTabsIntent.Builder()
+                                    .setToolbarColor(ContextCompat.getColor(host, R.color.primary))
+                                    .addDefaultShareMenuItem()
+                                    .build(), Uri.parse(lib.link));
 
-        @BindView(R.id.library_image) ImageView image;
-        @BindView(R.id.library_name) TextView name;
-        @BindView(R.id.library_description) TextView description;
-        @BindView(R.id.library_link) Button link;
-
-        LibraryHolder(View itemView) {
-            super(itemView);
-            ButterKnife.bind(this, itemView);
+                }
+            };
+            binding.getRoot().setOnClickListener(clickListener);
+            binding.libraryLink.setOnClickListener(clickListener);
         }
     }
 
