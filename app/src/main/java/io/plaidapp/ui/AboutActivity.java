@@ -50,6 +50,7 @@ import butterknife.ButterKnife;
 import in.uncod.android.bypass.Bypass;
 import io.plaidapp.R;
 import io.plaidapp.databinding.AboutIconBinding;
+import io.plaidapp.databinding.AboutLibsBinding;
 import io.plaidapp.databinding.AboutPlaidBinding;
 import io.plaidapp.ui.widget.ElasticDragDismissFrameLayout;
 import io.plaidapp.ui.widget.InkPageIndicator;
@@ -102,7 +103,7 @@ public class AboutActivity extends Activity {
         private View aboutIcon;
         TextView iconDescription;
         private View aboutLibs;
-        @Nullable @BindView(R.id.libs_list) RecyclerView libsList;
+        RecyclerView libsList;
 
         private final LayoutInflater layoutInflater;
         private final Bypass markdown;
@@ -181,8 +182,9 @@ public class AboutActivity extends Activity {
                     return aboutIcon;
                 case 2:
                     if (aboutLibs == null) {
-                        aboutLibs = layoutInflater.inflate(R.layout.about_libs, parent, false);
-                        ButterKnife.bind(this, aboutLibs);
+                        AboutLibsBinding binding = AboutLibsBinding.inflate(layoutInflater);
+                        aboutLibs = binding.getRoot();
+                        libsList = binding.libsList;
                         libsList.setAdapter(new LibraryAdapter(host));
                     }
                     return aboutLibs;
