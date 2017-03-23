@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   Copyright 2015 Google Inc.
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,61 +13,67 @@
   See the License for the specific language governing permissions and
   limitations under the License.
   -->
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-<io.plaidapp.ui.widget.ForegroundRelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/lib_item"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginBottom="@dimen/padding_normal"
-    android:minHeight="?android:listPreferredItemHeight"
-    android:paddingTop="@dimen/padding_normal"
-    android:paddingEnd="@dimen/padding_normal"
-    android:paddingBottom="@dimen/spacing_normal"
-    android:foreground="?android:selectableItemBackground"
-    android:stateListAnimator="@animator/raise"
-    android:background="@color/background_card"
-    android:elevation="@dimen/z_card">
+    <data>
 
-    <ImageView
-        android:id="@+id/library_image"
-        android:layout_width="@dimen/avatar_bounds"
-        android:layout_height="@dimen/avatar_bounds"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginEnd="@dimen/avatar_margin"
-        android:layout_marginStart="@dimen/avatar_margin"
-        android:padding="@dimen/avatar_padding"
-        android:src="@drawable/avatar_placeholder" />
+    </data>
 
-    <io.plaidapp.ui.widget.BaselineGridTextView
-        android:id="@+id/library_name"
-        android:layout_width="0dp"
+    <io.plaidapp.ui.widget.ForegroundRelativeLayout
+        android:id="@+id/lib_item"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_toEndOf="@id/library_image"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        style="@style/Widget.Plaid.Subhead" />
+        android:layout_marginBottom="@dimen/padding_normal"
+        android:background="@color/background_card"
+        android:elevation="@dimen/z_card"
+        android:foreground="?android:selectableItemBackground"
+        android:minHeight="?android:listPreferredItemHeight"
+        android:paddingBottom="@dimen/spacing_normal"
+        android:paddingEnd="@dimen/padding_normal"
+        android:paddingTop="@dimen/padding_normal"
+        android:stateListAnimator="@animator/raise">
 
-    <io.plaidapp.ui.widget.BaselineGridTextView
-        android:id="@+id/library_description"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/library_name"
-        android:layout_toEndOf="@id/library_image"
-        android:layout_alignParentEnd="true"
-        android:maxLines="2"
-        android:ellipsize="end"
-        style="@style/Widget.Plaid.SecondaryText" />
+        <ImageView
+            android:id="@+id/library_image"
+            android:layout_width="@dimen/avatar_bounds"
+            android:layout_height="@dimen/avatar_bounds"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginEnd="@dimen/avatar_margin"
+            android:layout_marginStart="@dimen/avatar_margin"
+            android:padding="@dimen/avatar_padding"
+            android:src="@drawable/avatar_placeholder" />
 
-    <Button
-        android:id="@+id/library_link"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_below="@id/library_description"
-        android:text="@string/about_lib_link"
-        android:textColor="@color/text_secondary_dark"
-        style="?android:borderlessButtonStyle" />
+        <io.plaidapp.ui.widget.BaselineGridTextView
+            android:id="@+id/library_name"
+            style="@style/Widget.Plaid.Subhead"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true"
+            android:layout_toEndOf="@id/library_image" />
 
-</io.plaidapp.ui.widget.ForegroundRelativeLayout>
+        <io.plaidapp.ui.widget.BaselineGridTextView
+            android:id="@+id/library_description"
+            style="@style/Widget.Plaid.SecondaryText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@id/library_name"
+            android:layout_toEndOf="@id/library_image"
+            android:ellipsize="end"
+            android:maxLines="2" />
+
+        <Button
+            android:id="@+id/library_link"
+            style="?android:borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@id/library_description"
+            android:text="@string/about_lib_link"
+            android:textColor="@color/text_secondary_dark" />
+
+    </io.plaidapp.ui.widget.ForegroundRelativeLayout>
+</layout>
