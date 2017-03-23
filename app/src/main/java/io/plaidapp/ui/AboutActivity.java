@@ -18,10 +18,10 @@ package io.plaidapp.ui;
 
 import android.app.Activity;
 import android.content.res.Resources;
+import android.databinding.BindingAdapter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.customtabs.CustomTabsIntent;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.PagerAdapter;
@@ -36,7 +36,6 @@ import android.transition.TransitionInflater;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -258,14 +257,14 @@ public class AboutActivity extends Activity {
 
         private @NonNull LibraryHolder createLibraryHolder(ViewGroup parent) {
             final LibraryHolder holder = new LibraryHolder(LibraryBinding.inflate(LayoutInflater.from(parent.getContext()),
-                    parent, false), host);
+                    parent, false), host, circleCrop);
             return holder;
         }
 
         @Override
         public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
             if (getItemViewType(position) == VIEW_TYPE_LIBRARY) {
-                ((LibraryHolder) holder).bind(libs[position - 1], circleCrop);
+                ((LibraryHolder) holder).bind(libs[position - 1]);
             } else {
                 ((LibraryIntroHolder)holder).bind();
             }
@@ -283,48 +282,49 @@ public class AboutActivity extends Activity {
 
     }
 
-    static class LibraryHolder extends RecyclerView.ViewHolder {
+    public static class LibraryHolder extends RecyclerView.ViewHolder {
         private final LibraryBinding libraryBinding;
         private Activity host;
+        private static CircleTransform circleCrop;
 
-        LibraryHolder(LibraryBinding binding, Activity host) {
+        LibraryHolder(LibraryBinding binding, Activity host, CircleTransform circleCrop) {
             super(binding.getRoot());
             this.libraryBinding = binding;
             this.host = host;
+            this.circleCrop = circleCrop;
         }
 
-        public void bind(Library lib, CircleTransform circleCrop) {
-            bindLibrary(libraryBinding, lib, circleCrop);
+        public void bind(final Library lib) {
+            libraryBinding.setLibrary(lib);
+            libraryBinding.getRoot().setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    LibraryHolder.this.onLibraryLinkClick(lib.link);
+                }
+            });
             libraryBinding.executePendingBindings();
         }
 
-        private void bindLibrary(final LibraryBinding binding, final Library lib, CircleTransform circleCrop) {
-            binding.libraryName.setText(lib.name);
-            binding.libraryDescription.setText(lib.description);
-            DrawableRequestBuilder<String> request = Glide.with(binding.libraryImage.getContext())
-                    .load(lib.imageUrl)
+        public void onLibraryLinkClick(String link) {
+            int position = getAdapterPosition();
+            if (position == RecyclerView.NO_POSITION) return;
+            CustomTabActivityHelper.openCustomTab(
+                    host,
+                    new CustomTabsIntent.Builder()
+                            .setToolbarColor(ContextCompat.getColor(host, R.color.primary))
+                            .addDefaultShareMenuItem()
+                            .build(), Uri.parse(link));
+        }
+
+        @BindingAdapter("imageUrl")
+        public static void setImageUrl(ImageView imageView, Library library) {
+            DrawableRequestBuilder<String> request = Glide.with(imageView.getContext())
+                    .load(library.imageUrl)
                     .placeholder(R.drawable.avatar_placeholder);
-            if (lib.circleCrop) {
+            if (library.circleCrop) {
                 request.transform(circleCrop);
             }
-            request.into(binding.libraryImage);
-
-            View.OnClickListener clickListener  = new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    int position = getAdapterPosition();
-                    if (position == RecyclerView.NO_POSITION) return;
-                    CustomTabActivityHelper.openCustomTab(
-                            host,
-                            new CustomTabsIntent.Builder()
-                                    .setToolbarColor(ContextCompat.getColor(host, R.color.primary))
-                                    .addDefaultShareMenuItem()
-                                    .build(), Uri.parse(lib.link));
-
-                }
-            };
-            binding.getRoot().setOnClickListener(clickListener);
-            binding.libraryLink.setOnClickListener(clickListener);
+            request.into(imageView);
         }
     }
 
@@ -348,12 +348,12 @@ public class AboutActivity extends Activity {
     /**
      * Models an open source library we want to credit
      */
-    private static class Library {
-        final String name;
-        final String link;
-        final String description;
-        final String imageUrl;
-        final boolean circleCrop;
+    public static class Library {
+        public final String name;
+        public final String link;
+        public final String description;
+        public final String imageUrl;
+        public final boolean circleCrop;
 
         Library(String name, String description, String link, String imageUrl, boolean circleCrop) {
             this.name = name;

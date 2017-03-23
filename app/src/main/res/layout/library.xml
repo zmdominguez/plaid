@@ -17,7 +17,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
-
+        <variable
+            name="library"
+            type="io.plaidapp.ui.AboutActivity.Library" />
+        <variable
+            name="handlers"
+            type="io.plaidapp.ui.AboutActivity.LibraryHolder" />
     </data>
 
     <io.plaidapp.ui.widget.ForegroundRelativeLayout
@@ -43,7 +48,8 @@
             android:layout_marginEnd="@dimen/avatar_margin"
             android:layout_marginStart="@dimen/avatar_margin"
             android:padding="@dimen/avatar_padding"
-            android:src="@drawable/avatar_placeholder" />
+            android:src="@drawable/avatar_placeholder"
+            app:imageUrl="@{library}"/>
 
         <io.plaidapp.ui.widget.BaselineGridTextView
             android:id="@+id/library_name"
@@ -52,7 +58,8 @@
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_alignParentTop="true"
-            android:layout_toEndOf="@id/library_image" />
+            android:layout_toEndOf="@id/library_image"
+            android:text="@{library.name}"/>
 
         <io.plaidapp.ui.widget.BaselineGridTextView
             android:id="@+id/library_description"
@@ -63,6 +70,7 @@
             android:layout_below="@id/library_name"
             android:layout_toEndOf="@id/library_image"
             android:ellipsize="end"
+            android:text="@{library.description}"
             android:maxLines="2" />
 
         <Button
@@ -73,7 +81,8 @@
             android:layout_alignParentEnd="true"
             android:layout_below="@id/library_description"
             android:text="@string/about_lib_link"
-            android:textColor="@color/text_secondary_dark" />
+            android:textColor="@color/text_secondary_dark"
+            android:onClick="@{() -> handlers.onLibraryLinkClick(library.link)}"/>
 
     </io.plaidapp.ui.widget.ForegroundRelativeLayout>
 </layout>
