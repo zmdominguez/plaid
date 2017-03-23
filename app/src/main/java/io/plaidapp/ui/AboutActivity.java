@@ -49,6 +49,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import in.uncod.android.bypass.Bypass;
 import io.plaidapp.R;
+import io.plaidapp.databinding.AboutPlaidBinding;
 import io.plaidapp.ui.widget.ElasticDragDismissFrameLayout;
 import io.plaidapp.ui.widget.InkPageIndicator;
 import io.plaidapp.util.HtmlUtils;
@@ -96,7 +97,7 @@ public class AboutActivity extends Activity {
     static class AboutPagerAdapter extends PagerAdapter {
 
         private View aboutPlaid;
-        @Nullable @BindView(R.id.about_description) TextView plaidDescription;
+        TextView plaidDescription;
         private View aboutIcon;
         @Nullable @BindView(R.id.icon_description) TextView iconDescription;
         private View aboutLibs;
@@ -140,8 +141,9 @@ public class AboutActivity extends Activity {
             switch (position) {
                 case 0:
                     if (aboutPlaid == null) {
-                        aboutPlaid = layoutInflater.inflate(R.layout.about_plaid, parent, false);
-                        ButterKnife.bind(this, aboutPlaid);
+                        AboutPlaidBinding binding = AboutPlaidBinding.inflate(layoutInflater);
+                        aboutPlaid = binding.getRoot();
+                        plaidDescription = binding.aboutDescription;
                         // fun with spans & markdown
                         CharSequence about0 = markdown.markdownToSpannable(resources
                                 .getString(R.string.about_plaid_0), plaidDescription, null);
