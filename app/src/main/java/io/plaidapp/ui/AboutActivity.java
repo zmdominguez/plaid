@@ -50,6 +50,7 @@ import butterknife.ButterKnife;
 import in.uncod.android.bypass.Bypass;
 import io.plaidapp.R;
 import io.plaidapp.databinding.AboutIconBinding;
+import io.plaidapp.databinding.AboutLibIntroBinding;
 import io.plaidapp.databinding.AboutLibsBinding;
 import io.plaidapp.databinding.AboutPlaidBinding;
 import io.plaidapp.ui.widget.ElasticDragDismissFrameLayout;
@@ -246,8 +247,8 @@ public class AboutActivity extends Activity {
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             switch (viewType) {
                 case VIEW_TYPE_INTRO:
-                    return new LibraryIntroHolder(LayoutInflater.from(parent.getContext())
-                            .inflate(R.layout.about_lib_intro, parent, false));
+                    return new LibraryIntroHolder(AboutLibIntroBinding.inflate(LayoutInflater.from(parent.getContext()),
+                            parent, false));
                 case VIEW_TYPE_LIBRARY:
                     return createLibraryHolder(parent);
             }
@@ -280,6 +281,8 @@ public class AboutActivity extends Activity {
         public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
             if (getItemViewType(position) == VIEW_TYPE_LIBRARY) {
                 bindLibrary((LibraryHolder) holder, libs[position - 1]); // adjust for intro
+            } else {
+                ((LibraryIntroHolder)holder).bind();
             }
         }
 
@@ -321,11 +324,18 @@ public class AboutActivity extends Activity {
 
     static class LibraryIntroHolder extends RecyclerView.ViewHolder {
 
+        private final AboutLibIntroBinding aboutLibIntroBinding;
         TextView intro;
 
-        LibraryIntroHolder(View itemView) {
-            super(itemView);
+        LibraryIntroHolder(AboutLibIntroBinding binding) {
+            super(binding.getRoot());
+            aboutLibIntroBinding = binding;
             intro = (TextView) itemView;
+        }
+
+        public void bind(/*Item item*/) {
+            //binding.setItem(item);
+            aboutLibIntroBinding.executePendingBindings();
         }
     }
 

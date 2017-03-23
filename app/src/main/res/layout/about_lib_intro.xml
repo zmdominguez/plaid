@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   Copyright 2015 Google Inc.
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,16 +13,21 @@
   See the License for the specific language governing permissions and
   limitations under the License.
   -->
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
-<io.plaidapp.ui.widget.BaselineGridTextView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/libraries_intro"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginTop="@dimen/spacing_xlarge"
-    android:layout_marginBottom="@dimen/spacing_normal"
-    android:padding="@dimen/padding_normal"
-    android:text="@string/about_libs_intro"
-    style="@style/Widget.Plaid.About"
-    tools:showIn="@layout/about_libs" />
+    <data>
+
+    </data>
+
+    <io.plaidapp.ui.widget.BaselineGridTextView
+        android:id="@+id/libraries_intro"
+        style="@style/Widget.Plaid.About"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/spacing_normal"
+        android:layout_marginTop="@dimen/spacing_xlarge"
+        android:padding="@dimen/padding_normal"
+        android:text="@string/about_libs_intro"
+        tools:showIn="@layout/about_libs" />
+</layout>
