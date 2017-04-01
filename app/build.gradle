@@ -54,6 +54,9 @@ android {
         manifestPlaceholders = [filesAuthority: filesAuthorityValue]
     }
     buildTypes {
+        debug {
+            archivesBaseName = "plaid"
+        }
         release {
             minifyEnabled true
             shrinkResources true
