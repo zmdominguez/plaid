@@ -19,6 +19,7 @@ package io.plaidapp.ui;
 import android.app.Activity;
 import android.content.res.Resources;
 import android.databinding.BindingAdapter;
+import android.databinding.DataBindingUtil;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -52,6 +53,7 @@ import io.plaidapp.databinding.AboutIconBinding;
 import io.plaidapp.databinding.AboutLibIntroBinding;
 import io.plaidapp.databinding.AboutLibsBinding;
 import io.plaidapp.databinding.AboutPlaidBinding;
+import io.plaidapp.databinding.ActivityAboutBinding;
 import io.plaidapp.databinding.LibraryBinding;
 import io.plaidapp.ui.widget.ElasticDragDismissFrameLayout;
 import io.plaidapp.ui.widget.InkPageIndicator;
@@ -67,20 +69,16 @@ import io.plaidapp.util.glide.CircleTransform;
  */
 public class AboutActivity extends Activity {
 
-    @BindView(R.id.draggable_frame) ElasticDragDismissFrameLayout draggableFrame;
-    @BindView(R.id.pager) ViewPager pager;
-    @BindView(R.id.indicator) InkPageIndicator pageIndicator;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_about);
-        ButterKnife.bind(this);
-
+        ActivityAboutBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_about);
+        ViewPager pager = binding.pager;
         pager.setAdapter(new AboutPagerAdapter(AboutActivity.this));
         pager.setPageMargin(getResources().getDimensionPixelSize(R.dimen.spacing_normal));
-        pageIndicator.setViewPager(pager);
+        binding.indicator.setViewPager(pager);
 
+        final ElasticDragDismissFrameLayout draggableFrame = binding.draggableFrame;
         draggableFrame.addListener(
                 new ElasticDragDismissFrameLayout.SystemChromeFader(this) {
                     @Override
