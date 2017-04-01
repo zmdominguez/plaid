@@ -120,27 +120,6 @@ public class DesignerNewsLogin extends Activity {
 
         loading.setVisibility(View.GONE);
         setupAccountAutocomplete();
-        // the primer checkbox messes with focus order so force it
-        username.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_NEXT) {
-                    password.requestFocus();
-                    return true;
-                }
-                return false;
-            }
-        });
-        password.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE && isLoginValid()) {
-                    login.performClick();
-                    return true;
-                }
-                return false;
-            }
-        });
         designerNewsPrefs = DesignerNewsPrefs.get(this);
     }
 
@@ -161,6 +140,22 @@ public class DesignerNewsLogin extends Activity {
             }
         });
         maybeShowAccounts();
+    }
+    // the primer checkbox messes with focus order so force it
+    public boolean onNameEditorAction(int actionId) {
+        if (actionId == EditorInfo.IME_ACTION_NEXT) {
+            password.requestFocus();
+            return true;
+        }
+        return false;
+    }
+
+    public boolean onPasswordEditorAction(int actionId) {
+        if (actionId == EditorInfo.IME_ACTION_DONE && isLoginValid()) {
+            login.performClick();
+            return true;
+        }
+        return false;
     }
 
     @Override
