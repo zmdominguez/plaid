@@ -22,6 +22,7 @@ import android.accounts.AccountManager;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.databinding.DataBindingUtil;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -60,13 +61,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import io.plaidapp.BuildConfig;
 import io.plaidapp.R;
 import io.plaidapp.data.api.designernews.model.AccessToken;
 import io.plaidapp.data.api.designernews.model.User;
 import io.plaidapp.data.prefs.DesignerNewsPrefs;
+import io.plaidapp.databinding.ActivityDesignerNewsLoginBinding;
 import io.plaidapp.ui.transitions.FabTransform;
 import io.plaidapp.ui.transitions.MorphTransform;
 import io.plaidapp.util.ScrimUtil;
@@ -81,25 +81,36 @@ public class DesignerNewsLogin extends Activity {
     private static final int PERMISSIONS_REQUEST_GET_ACCOUNTS = 0;
 
     boolean isDismissing = false;
-    @BindView(R.id.container) ViewGroup container;
-    @BindView(R.id.dialog_title) TextView title;
-    @BindView(R.id.username_float_label) TextInputLayout usernameLabel;
-    @BindView(R.id.username) AutoCompleteTextView username;
-    @BindView(R.id.permission_primer) CheckBox permissionPrimer;
-    @BindView(R.id.password_float_label) TextInputLayout passwordLabel;
-    @BindView(R.id.password) EditText password;
-    @BindView(R.id.actions_container) FrameLayout actionsContainer;
-    @BindView(R.id.signup) Button signup;
-    @BindView(R.id.login) Button login;
-    @BindView(R.id.loading) ProgressBar loading;
+    ViewGroup container;
+    TextView title;
+    TextInputLayout usernameLabel;
+    AutoCompleteTextView username;
+    CheckBox permissionPrimer;
+    TextInputLayout passwordLabel;
+    EditText password;
+    FrameLayout actionsContainer;
+    Button signup;
+    Button login;
+    ProgressBar loading;
     DesignerNewsPrefs designerNewsPrefs;
     private boolean shouldPromptForPermission = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_designer_news_login);
-        ButterKnife.bind(this);
+        ActivityDesignerNewsLoginBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_designer_news_login);
+        binding.setHandlers(this);
+        container = binding.container;
+        title = binding.dialogTitle;
+        usernameLabel = binding.usernameFloatLabel;
+        username = binding.username;
+        permissionPrimer = binding.permissionPrimer;
+        passwordLabel = binding.passwordFloatLabel;
+        password = binding.password;
+        actionsContainer = binding.actionsContainer;
+        signup = binding.signup;
+        login = binding.login;
+        loading = binding.included.loading;
         if (!FabTransform.setup(this, container)) {
             MorphTransform.setup(this, container,
                     ContextCompat.getColor(this, R.color.background_light),
@@ -119,7 +130,6 @@ public class DesignerNewsLogin extends Activity {
 
         loading.setVisibility(View.GONE);
         setupAccountAutocomplete();
-        username.addTextChangedListener(loginFieldWatcher);
         // the primer checkbox messes with focus order so force it
         username.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -131,7 +141,6 @@ public class DesignerNewsLogin extends Activity {
                 return false;
             }
         });
-        password.addTextChangedListener(loginFieldWatcher);
         password.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -179,7 +188,7 @@ public class DesignerNewsLogin extends Activity {
         getAccessToken();
     }
 
-    public void signup(View view) {
+    public void signup() {
         startActivity(new Intent(Intent.ACTION_VIEW,
                 Uri.parse("https://www.designernews.co/users/new")));
     }
@@ -264,16 +273,9 @@ public class DesignerNewsLogin extends Activity {
         password.requestFocus();
     }
 
-    private TextWatcher loginFieldWatcher = new TextWatcher() {
-        @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-
-        @Override public void onTextChanged(CharSequence s, int start, int before, int count) { }
-
-        @Override
-        public void afterTextChanged(Editable s) {
-            login.setEnabled(isLoginValid());
-        }
-    };
+    public void afterTextChanged() {
+        login.setEnabled(isLoginValid());
+    }
 
     private void showLoading() {
         TransitionManager.beginDelayedTransition(container);
