@@ -72,6 +72,7 @@
                     android:selectAllOnFocus="true"
                     android:afterTextChanged="@{() -> handlers.afterTextChanged()}"
                     android:onEditorAction="@{(v, actionId, event) -> handlers.onNameEditorAction(actionId)}"
+                    android:onFocusChange="@{() -> handlers.onNameFocusChange()}"
                     android:textColorHighlight="@color/designer_news_link_highlight"/>
 
             </android.support.design.widget.TextInputLayout>

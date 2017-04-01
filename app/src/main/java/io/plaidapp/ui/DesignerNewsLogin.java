@@ -29,14 +29,11 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.content.ContextCompat;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.transition.Transition;
 import android.transition.TransitionManager;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -206,12 +203,10 @@ public class DesignerNewsLogin extends Activity {
                     PERMISSIONS_REQUEST_GET_ACCOUNTS);
             shouldPromptForPermission = false;
         }
-        username.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                maybeShowAccounts();
-            }
-        });
+        maybeShowAccounts();
+    }
+
+    public void onNameFocusChange() {
         maybeShowAccounts();
     }
 
