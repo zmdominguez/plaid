@@ -34,11 +34,11 @@ import android.support.design.widget.TextInputLayout;
 import android.support.v4.content.ContextCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.transition.Transition;
 import android.transition.TransitionManager;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -201,6 +201,24 @@ public class DesignerNewsLogin extends Activity {
         isDismissing = true;
         setResult(Activity.RESULT_CANCELED);
         finishAfterTransition();
+    }
+
+    /**
+     * Postpone some of the setup steps so that we can run it after the enter transition
+     * (if there is one). Otherwise we may show the permissions dialog or account dropdown
+     * during the enter animation which is jarring.
+     */
+    void finishSetup() {
+        if (shouldPromptForPermission) {
+            requestPermissions(new String[]{ Manifest.permission.GET_ACCOUNTS },
+                    PERMISSIONS_REQUEST_GET_ACCOUNTS);
+            shouldPromptForPermission = false;
+        }
+        maybeShowAccounts();
+    }
+
+    public void onNameFocusChange() {
+        maybeShowAccounts();
     }
 
     void maybeShowAccounts() {
