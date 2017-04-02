@@ -22,13 +22,17 @@ import android.accounts.AccountManager;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.databinding.BaseObservable;
+import android.databinding.Bindable;
 import android.databinding.DataBindingUtil;
+import android.net.Credentials;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.content.ContextCompat;
+import android.text.TextUtils;
 import android.transition.Transition;
 import android.transition.TransitionManager;
 import android.util.Log;
@@ -58,6 +62,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import io.plaidapp.BR;
 import io.plaidapp.BuildConfig;
 import io.plaidapp.R;
 import io.plaidapp.data.api.designernews.model.AccessToken;
@@ -97,6 +102,8 @@ public class DesignerNewsLogin extends Activity {
         super.onCreate(savedInstanceState);
         ActivityDesignerNewsLoginBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_designer_news_login);
         binding.setHandlers(this);
+        binding.setCredentials(new DesignerNewsCredentials());
+
         container = binding.container;
         title = binding.dialogTitle;
         usernameLabel = binding.usernameFloatLabel;
@@ -139,8 +146,8 @@ public class DesignerNewsLogin extends Activity {
         return false;
     }
 
-    public boolean onPasswordEditorAction(int actionId) {
-        if (actionId == EditorInfo.IME_ACTION_DONE && isLoginValid()) {
+    public boolean onPasswordEditorAction(int actionId, DesignerNewsCredentials credentials) {
+        if (actionId == EditorInfo.IME_ACTION_DONE && credentials.isAllowLogin()) {
             login.performClick();
             return true;
         }
@@ -176,9 +183,9 @@ public class DesignerNewsLogin extends Activity {
         }
     }
 
-    public void doLogin(View view) {
+    public void doLogin(DesignerNewsCredentials credentials) {
         showLoading();
-        getAccessToken();
+        getAccessToken(credentials);
     }
 
     public void signup() {
@@ -217,10 +224,6 @@ public class DesignerNewsLogin extends Activity {
                 && username.getAdapter().getCount() > 0) {
             username.showDropDown();
         }
-    }
-
-    boolean isLoginValid() {
-        return username.length() > 0 && password.length() > 0;
     }
 
     void showLoggedInUser() {
@@ -264,10 +267,6 @@ public class DesignerNewsLogin extends Activity {
         password.requestFocus();
     }
 
-    public void afterTextChanged() {
-        login.setEnabled(isLoginValid());
-    }
-
     private void showLoading() {
         TransitionManager.beginDelayedTransition(container);
         title.setVisibility(View.GONE);
@@ -287,9 +286,9 @@ public class DesignerNewsLogin extends Activity {
         loading.setVisibility(View.GONE);
     }
 
-    private void getAccessToken() {
+    private void getAccessToken(DesignerNewsCredentials credentials) {
         final Call<AccessToken> login = designerNewsPrefs.getApi().login(
-                buildLoginParams(username.getText().toString(), password.getText().toString()));
+                buildLoginParams(credentials.username, credentials.password));
         login.enqueue(new Callback<AccessToken>() {
             @Override
             public void onResponse(Call<AccessToken> call, Response<AccessToken> response) {
@@ -356,5 +355,46 @@ public class DesignerNewsLogin extends Activity {
                 }
             }
         });
+    }
+
+    public static class DesignerNewsCredentials extends BaseObservable {
+        private String username;
+        private String password;
+        private boolean allowLogin;
+
+        public DesignerNewsCredentials() {
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        private boolean shouldAllowLogin() {
+            return !TextUtils.isEmpty(username) && !TextUtils.isEmpty(password);
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+            setAllowLogin(shouldAllowLogin());
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+            setAllowLogin(shouldAllowLogin());
+        }
+
+        @Bindable
+        public boolean isAllowLogin() {
+            return allowLogin;
+        }
+
+        public void setAllowLogin(boolean allowLogin) {
+            this.allowLogin = allowLogin;
+            notifyPropertyChanged(BR.allowLogin);
+        }
     }
 }
