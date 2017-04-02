@@ -22,10 +22,8 @@ import android.accounts.AccountManager;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.databinding.BaseObservable;
-import android.databinding.Bindable;
 import android.databinding.DataBindingUtil;
-import android.net.Credentials;
+import android.databinding.ObservableBoolean;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -62,7 +60,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import io.plaidapp.BR;
 import io.plaidapp.BuildConfig;
 import io.plaidapp.R;
 import io.plaidapp.data.api.designernews.model.AccessToken;
@@ -147,7 +144,7 @@ public class DesignerNewsLogin extends Activity {
     }
 
     public boolean onPasswordEditorAction(int actionId, DesignerNewsCredentials credentials) {
-        if (actionId == EditorInfo.IME_ACTION_DONE && credentials.isAllowLogin()) {
+        if (actionId == EditorInfo.IME_ACTION_DONE && credentials.hasCredentials.get()) {
             login.performClick();
             return true;
         }
@@ -357,10 +354,11 @@ public class DesignerNewsLogin extends Activity {
         });
     }
 
-    public static class DesignerNewsCredentials extends BaseObservable {
+    public static class DesignerNewsCredentials {
         private String username;
         private String password;
-        private boolean allowLogin;
+
+        public final ObservableBoolean hasCredentials = new ObservableBoolean();
 
         public DesignerNewsCredentials() {
         }
@@ -369,13 +367,13 @@ public class DesignerNewsLogin extends Activity {
             return password;
         }
 
-        private boolean shouldAllowLogin() {
+        private boolean hasUsernameAndPassword() {
             return !TextUtils.isEmpty(username) && !TextUtils.isEmpty(password);
         }
 
         public void setPassword(String password) {
             this.password = password;
-            setAllowLogin(shouldAllowLogin());
+            hasCredentials.set(hasUsernameAndPassword());
         }
 
         public String getUsername() {
@@ -384,17 +382,7 @@ public class DesignerNewsLogin extends Activity {
 
         public void setUsername(String username) {
             this.username = username;
-            setAllowLogin(shouldAllowLogin());
-        }
-
-        @Bindable
-        public boolean isAllowLogin() {
-            return allowLogin;
-        }
-
-        public void setAllowLogin(boolean allowLogin) {
-            this.allowLogin = allowLogin;
-            notifyPropertyChanged(BR.allowLogin);
+            hasCredentials.set(hasUsernameAndPassword());
         }
     }
 }

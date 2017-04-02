@@ -131,7 +131,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="end"
-                    android:enabled="@{credentials.allowLogin}"
+                    android:enabled="@{credentials.hasCredentials}"
                     android:onClick="@{() -> handlers.doLogin(credentials)}"
                     android:text="@string/dn_login_action"
                     android:textAppearance="@style/TextAppearance.DarkButton"/>
