@@ -22,6 +22,9 @@
         <variable
             name="handlers"
             type="io.plaidapp.ui.DesignerNewsLogin" />
+        <variable
+            name="credentials"
+            type="io.plaidapp.ui.DesignerNewsLogin.DesignerNewsCredentials" />
     </data>
 
     <FrameLayout
@@ -70,7 +73,7 @@
                     android:hint="@string/username"
                     android:inputType="textEmailAddress"
                     android:selectAllOnFocus="true"
-                    android:afterTextChanged="@{() -> handlers.afterTextChanged()}"
+                    android:text="@={credentials.username}"
                     android:onEditorAction="@{(v, actionId, event) -> handlers.onNameEditorAction(actionId)}"
                     android:onFocusChange="@{() -> handlers.onNameFocusChange()}"
                     android:textColorHighlight="@color/designer_news_link_highlight"/>
@@ -101,8 +104,8 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/password"
                     android:inputType="textPassword"
-                    android:afterTextChanged="@{() -> handlers.afterTextChanged()}"
-                    android:onEditorAction="@{(v, actionId, event) -> handlers.onPasswordEditorAction(actionId)}"
+                    android:text="@={credentials.password}"
+                    android:onEditorAction="@{(v, actionId, event) -> handlers.onPasswordEditorAction(actionId, credentials)}"
                     android:selectAllOnFocus="true"/>
 
             </android.support.design.widget.TextInputLayout>
@@ -128,8 +131,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="end"
-                    android:enabled="false"
-                    android:onClick="doLogin"
+                    android:enabled="@{credentials.allowLogin}"
+                    android:onClick="@{() -> handlers.doLogin(credentials)}"
                     android:text="@string/dn_login_action"
                     android:textAppearance="@style/TextAppearance.DarkButton"/>
 
