@@ -23,6 +23,7 @@ import android.app.ActivityOptions;
 import android.app.assist.AssistContent;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.databinding.DataBindingUtil;
 import android.graphics.Bitmap;
 import android.graphics.drawable.AnimatedVectorDrawable;
 import android.graphics.drawable.Drawable;
@@ -76,6 +77,8 @@ import io.plaidapp.data.api.dribbble.model.Like;
 import io.plaidapp.data.api.dribbble.model.Shot;
 import io.plaidapp.data.prefs.DribbblePrefs;
 import io.plaidapp.ui.recyclerview.Divided;
+import io.plaidapp.databinding.ActivityDribbbleShotBinding;
+import io.plaidapp.databinding.DribbbleShotDescriptionBinding;
 import io.plaidapp.ui.recyclerview.InsetDividerDecoration;
 import io.plaidapp.ui.recyclerview.SlideInItemAnimator;
 import io.plaidapp.ui.transitions.FabTransform;
@@ -110,11 +113,11 @@ public class DribbbleShot extends Activity {
     private static final int RC_LOGIN_COMMENT = 1;
     private static final float SCRIM_ADJUSTMENT = 0.075f;
 
-    @BindView(R.id.draggable_frame) ElasticDragDismissFrameLayout draggableFrame;
-    @BindView(R.id.back) ImageButton back;
-    @BindView(R.id.shot) ParallaxScrimageView imageView;
-    @BindView(R.id.dribbble_comments) RecyclerView commentsList;
-    @BindView(R.id.fab_heart) FABToggle fab;
+    ElasticDragDismissFrameLayout draggableFrame;
+    ImageButton back;
+    ParallaxScrimageView imageView;
+    RecyclerView commentsList;
+    FABToggle fab;
     View shotDescription;
     View shotSpacer;
     Button likeCount;
@@ -144,20 +147,29 @@ public class DribbbleShot extends Activity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_dribbble_shot);
-        dribbblePrefs = DribbblePrefs.get(this);
+        ActivityDribbbleShotBinding activityBinding = DataBindingUtil.setContentView(this, R.layout.activity_dribbble_shot);
         ButterKnife.bind(this);
-        shotDescription = getLayoutInflater().inflate(R.layout.dribbble_shot_description,
-                commentsList, false);
-        shotSpacer = shotDescription.findViewById(R.id.shot_spacer);
-        title = shotDescription.findViewById(R.id.shot_title);
-        description = shotDescription.findViewById(R.id.shot_description);
-        likeCount = (Button) shotDescription.findViewById(R.id.shot_like_count);
-        viewCount = (Button) shotDescription.findViewById(R.id.shot_view_count);
-        share = (Button) shotDescription.findViewById(R.id.shot_share_action);
-        playerName = (TextView) shotDescription.findViewById(R.id.player_name);
-        playerAvatar = (ImageView) shotDescription.findViewById(R.id.player_avatar);
-        shotTimeAgo = (TextView) shotDescription.findViewById(R.id.shot_time_ago);
+
+        draggableFrame = activityBinding.draggableFrame;
+        back = activityBinding.back;
+        imageView = activityBinding.shot;
+        commentsList = activityBinding.dribbbleComments;
+        fab = activityBinding.fabHeart;
+
+        dribbblePrefs = DribbblePrefs.get(this);
+        circleTransform = new CircleTransform(this);
+
+        DribbbleShotDescriptionBinding descriptionBinding = DribbbleShotDescriptionBinding.inflate(getLayoutInflater(), commentsList, false);
+        shotDescription = descriptionBinding.getRoot();
+        shotSpacer = descriptionBinding.shotSpacer;
+        title = descriptionBinding.includeTitle.shotTitle;
+        description = descriptionBinding.includeTitle.shotDescription;
+        likeCount = descriptionBinding.shotLikeCount;
+        viewCount = descriptionBinding.shotViewCount;
+        share = descriptionBinding.shotShareAction;
+        playerName = descriptionBinding.playerName;
+        playerAvatar = descriptionBinding.playerAvatar;
+        shotTimeAgo = descriptionBinding.shotTimeAgo;
 
         setupCommenting();
         commentsList.addOnScrollListener(scrollListener);
