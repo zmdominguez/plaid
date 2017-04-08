@@ -15,55 +15,56 @@
   limitations under the License.
   -->
 
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:minHeight="?android:listPreferredItemHeight"
-    android:paddingTop="@dimen/spacing_large"
-    android:paddingEnd="@dimen/padding_normal"
-    android:orientation="horizontal"
-    android:baselineAligned="false">
-
-    <io.plaidapp.ui.widget.ForegroundImageView
-        android:id="@+id/avatar"
-        android:layout_width="@dimen/avatar_bounds"
-        android:layout_height="@dimen/avatar_bounds"
-        android:layout_marginEnd="@dimen/avatar_margin"
-        android:layout_marginStart="@dimen/avatar_margin"
-        android:padding="@dimen/avatar_padding"
-        android:layout_gravity="top"
-        android:src="@drawable/ic_player" />
-
-    <android.support.design.widget.TextInputLayout
-        android:layout_width="0dp"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:layout_marginStart="@dimen/til_margin_fix"
-        android:transitionGroup="true"
-        app:hintTextAppearance="@style/TextAppearance.FloatLabelHint">
+        android:minHeight="?android:listPreferredItemHeight"
+        android:paddingTop="@dimen/spacing_large"
+        android:paddingEnd="@dimen/padding_normal"
+        android:orientation="horizontal"
+        android:baselineAligned="false">
 
-        <android.support.design.widget.TextInputEditText
-            android:id="@+id/comment"
-            android:hint="@string/hint_reply"
-            android:layout_width="match_parent"
+        <io.plaidapp.ui.widget.ForegroundImageView
+            android:id="@+id/avatar"
+            android:layout_width="@dimen/avatar_bounds"
+            android:layout_height="@dimen/avatar_bounds"
+            android:layout_marginEnd="@dimen/avatar_margin"
+            android:layout_marginStart="@dimen/avatar_margin"
+            android:padding="@dimen/avatar_padding"
+            android:layout_gravity="top"
+            android:src="@drawable/ic_player" />
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:inputType="textCapSentences"
-            android:textSize="16sp"
-            android:textColor="@color/text_primary_dark" />
+            android:layout_marginStart="@dimen/til_margin_fix"
+            android:transitionGroup="true"
+            app:hintTextAppearance="@style/TextAppearance.FloatLabelHint">
 
-    </android.support.design.widget.TextInputLayout>
+            <android.support.design.widget.TextInputEditText
+                android:id="@+id/comment"
+                android:hint="@string/hint_reply"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:inputType="textCapSentences"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary_dark" />
 
-    <ImageButton
-        android:id="@+id/post_comment"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top"
-        android:padding="@dimen/spacing_normal"
-        android:src="@drawable/asl_add_comment"
-        android:background="?android:selectableItemBackgroundBorderless"
-        android:onClick="postComment" />
+        </android.support.design.widget.TextInputLayout>
 
-</LinearLayout>
+        <ImageButton
+            android:id="@+id/post_comment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:padding="@dimen/spacing_normal"
+            android:src="@drawable/asl_add_comment"
+            android:background="?android:selectableItemBackgroundBorderless"
+            android:onClick="postComment" />
+
+    </LinearLayout>
+</layout>

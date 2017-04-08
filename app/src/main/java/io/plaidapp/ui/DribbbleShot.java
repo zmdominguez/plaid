@@ -78,6 +78,7 @@ import io.plaidapp.data.api.dribbble.model.Shot;
 import io.plaidapp.data.prefs.DribbblePrefs;
 import io.plaidapp.ui.recyclerview.Divided;
 import io.plaidapp.databinding.ActivityDribbbleShotBinding;
+import io.plaidapp.databinding.DribbbleEnterCommentBinding;
 import io.plaidapp.databinding.DribbbleShotDescriptionBinding;
 import io.plaidapp.ui.recyclerview.InsetDividerDecoration;
 import io.plaidapp.ui.recyclerview.SlideInItemAnimator;
@@ -718,11 +719,12 @@ public class DribbbleShot extends Activity {
         allowComment = !dribbblePrefs.isLoggedIn()
                 || (dribbblePrefs.isLoggedIn() && dribbblePrefs.userCanPost());
         if (allowComment && commentFooter == null) {
-            commentFooter = getLayoutInflater().inflate(R.layout.dribbble_enter_comment,
+            DribbbleEnterCommentBinding commentBinding = DribbbleEnterCommentBinding.inflate(getLayoutInflater(),
                     commentsList, false);
-            userAvatar = (ForegroundImageView) commentFooter.findViewById(R.id.avatar);
-            enterComment = (EditText) commentFooter.findViewById(R.id.comment);
-            postComment = (ImageButton) commentFooter.findViewById(R.id.post_comment);
+            commentFooter = commentBinding.getRoot();
+            userAvatar = commentBinding.avatar;
+            enterComment = commentBinding.comment;
+            postComment = commentBinding.postComment;
             enterComment.setOnFocusChangeListener(enterCommentFocus);
         } else if (!allowComment && commentFooter != null) {
             adapter.removeCommentingFooter();
