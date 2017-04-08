@@ -231,10 +231,6 @@ public class DesignerNewsLogin extends Activity {
         }
     }
 
-    boolean isLoginValid() {
-        return username.length() > 0 && password.length() > 0;
-    }
-
     @SuppressLint("InflateParams")
     void showLoggedInUser() {
         final Call<User> authedUser = designerNewsPrefs.getApi().getAuthedUser();
