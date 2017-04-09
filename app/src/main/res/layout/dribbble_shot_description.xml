@@ -16,6 +16,14 @@
   -->
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools">
+    <data>
+        <variable
+            name="shot"
+            type="io.plaidapp.data.api.dribbble.model.Shot" />
+        <variable
+            name="handlers"
+            type="io.plaidapp.ui.DribbbleShot" />
+    </data>
     <GridLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -32,6 +40,7 @@
         <io.plaidapp.ui.widget.FourThreeView
             android:id="@+id/shot_spacer"
             android:layout_columnSpan="3"
+            android:onClick="@{() -> handlers.onShotClick(shot.url)}"
             android:background="@drawable/mid_grey_bounded_ripple" />
 
         <include android:id="@+id/include_title" layout="@layout/dribbble_shot_title" />

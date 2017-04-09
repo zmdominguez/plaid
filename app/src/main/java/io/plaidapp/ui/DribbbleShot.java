@@ -21,9 +21,12 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ActivityOptions;
 import android.app.assist.AssistContent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.databinding.BindingAdapter;
 import android.databinding.DataBindingUtil;
+import android.databinding.ViewDataBinding;
 import android.graphics.Bitmap;
 import android.graphics.drawable.AnimatedVectorDrawable;
 import android.graphics.drawable.Drawable;
@@ -49,6 +52,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -73,6 +77,7 @@ import butterknife.ButterKnife;
 import io.plaidapp.R;
 import io.plaidapp.data.api.dribbble.DribbbleService;
 import io.plaidapp.data.api.dribbble.model.Comment;
+import io.plaidapp.data.api.dribbble.model.Images;
 import io.plaidapp.data.api.dribbble.model.Like;
 import io.plaidapp.data.api.dribbble.model.Shot;
 import io.plaidapp.data.prefs.DribbblePrefs;
@@ -84,6 +89,7 @@ import io.plaidapp.ui.recyclerview.InsetDividerDecoration;
 import io.plaidapp.ui.recyclerview.SlideInItemAnimator;
 import io.plaidapp.ui.transitions.FabTransform;
 import io.plaidapp.ui.widget.AuthorTextView;
+import io.plaidapp.ui.widget.BaselineGridTextView;
 import io.plaidapp.ui.widget.CheckableImageButton;
 import io.plaidapp.ui.widget.ElasticDragDismissFrameLayout;
 import io.plaidapp.ui.widget.FABToggle;
@@ -144,11 +150,15 @@ public class DribbbleShot extends Activity {
     CommentAnimator commentAnimator;
     @BindDimen(R.dimen.large_avatar_size) int largeAvatarSize;
     @BindDimen(R.dimen.z_card) int cardElevation;
+    private ActivityDribbbleShotBinding activityBinding;
+    private DribbbleShotDescriptionBinding descriptionBinding;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ActivityDribbbleShotBinding activityBinding = DataBindingUtil.setContentView(this, R.layout.activity_dribbble_shot);
+        activityBinding = DataBindingUtil.setContentView(this, R.layout.activity_dribbble_shot);
+        activityBinding.setHandlers(this);
+        activityBinding.setActivity(this);
         ButterKnife.bind(this);
 
         draggableFrame = activityBinding.draggableFrame;
@@ -158,9 +168,9 @@ public class DribbbleShot extends Activity {
         fab = activityBinding.fabHeart;
 
         dribbblePrefs = DribbblePrefs.get(this);
-        circleTransform = new CircleTransform(this);
 
-        DribbbleShotDescriptionBinding descriptionBinding = DribbbleShotDescriptionBinding.inflate(getLayoutInflater(), commentsList, false);
+        descriptionBinding = DribbbleShotDescriptionBinding.inflate(getLayoutInflater(), commentsList, false);
+        descriptionBinding.setHandlers(this);
         shotDescription = descriptionBinding.getRoot();
         shotSpacer = descriptionBinding.shotSpacer;
         title = descriptionBinding.includeTitle.shotTitle;
@@ -192,6 +202,7 @@ public class DribbbleShot extends Activity {
         final Intent intent = getIntent();
         if (intent.hasExtra(EXTRA_SHOT)) {
             shot = intent.getParcelableExtra(EXTRA_SHOT);
+            setShotToBindings(shot);
             bindShot(true);
         } else if (intent.getData() != null) {
             final HttpUrl url = HttpUrl.parse(intent.getDataString());
@@ -205,6 +216,7 @@ public class DribbbleShot extends Activity {
                         @Override
                         public void onResponse(Call<Shot> call, Response<Shot> response) {
                             shot = response.body();
+                            setShotToBindings(shot);
                             bindShot(false);
                         }
 
@@ -220,6 +232,12 @@ public class DribbbleShot extends Activity {
                 reportUrlError();
             }
         }
+    }
+
+    private void setShotToBindings(Shot shot) {
+        activityBinding.setShot(shot);
+        descriptionBinding.setShot(shot);
+        descriptionBinding.includeTitle.setShot(shot);
     }
 
     @Override
@@ -301,8 +319,111 @@ public class DribbbleShot extends Activity {
         }
     }
 
-    void bindShot(final boolean postponeEnterTransition) {
-        final Resources res = getResources();
+
+    @BindingAdapter({"images", "activity"})
+    public void setImageUrl(final ParallaxScrimageView imageView, final Images images, Activity activity) {
+        final Context context = imageView.getContext();
+        final Window window = activity.getWindow();
+
+        RequestListener<Drawable> shotLoadListener = new RequestListener<Drawable>() {
+            @Override
+            public boolean onResourceReady(Drawable resource, Object model,
+                                           Target<Drawable> target, DataSource dataSource,
+                                           boolean isFirstResource) {
+                final Bitmap bitmap = GlideUtils.getBitmap(resource);
+                if (bitmap == null) return false;
+                final int twentyFourDip = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                        24, context.getResources().getDisplayMetrics());
+                Palette.from(bitmap)
+                        .maximumColorCount(3)
+                        .clearFilters() /* by default palette ignore certain hues
+                        (e.g. pure black/white) but we don't want this. */
+                        .setRegion(0, 0, bitmap.getWidth() - 1, twentyFourDip) /* - 1 to work around
+                        https://code.google.com/p/android/issues/detail?id=191013 */
+                        .generate(new Palette.PaletteAsyncListener() {
+                            @Override
+                            public void onGenerated(Palette palette) {
+                                boolean isDark;
+                                @ColorUtils.Lightness int lightness = ColorUtils.isDark(palette);
+                                if (lightness == ColorUtils.LIGHTNESS_UNKNOWN) {
+                                    isDark = ColorUtils.isDark(bitmap, bitmap.getWidth() / 2, 0);
+                                } else {
+                                    isDark = lightness == ColorUtils.IS_DARK;
+                                }
+
+                                if (!isDark) { // make back icon dark on light images
+                                    ActivityDribbbleShotBinding binding = DataBindingUtil.findBinding(imageView);
+                                    binding.back.setColorFilter(ContextCompat.getColor(
+                                            context, R.color.dark_icon));
+                                }
+
+                                // color the status bar. Set a complementary dark color on L,
+                                // light or dark color on M (with matching status bar icons)
+                                int statusBarColor = window.getStatusBarColor();
+                                final Palette.Swatch topColor =
+                                        ColorUtils.getMostPopulousSwatch(palette);
+                                if (topColor != null &&
+                                        (isDark || Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
+                                    statusBarColor = ColorUtils.scrimify(topColor.getRgb(),
+                                            isDark, SCRIM_ADJUSTMENT);
+                                    // set a light status bar on M+
+                                    if (!isDark && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                        ViewUtils.setLightStatusBar(imageView);
+                                    }
+                                }
+
+                                if (statusBarColor != window.getStatusBarColor()) {
+                                    imageView.setScrimColor(statusBarColor);
+                                    ValueAnimator statusBarColorAnim = ValueAnimator.ofArgb(
+                                            window.getStatusBarColor(), statusBarColor);
+                                    statusBarColorAnim.addUpdateListener(new ValueAnimator
+                                            .AnimatorUpdateListener() {
+                                        @Override
+                                        public void onAnimationUpdate(ValueAnimator animation) {
+                                            window.setStatusBarColor(
+                                                    (int) animation.getAnimatedValue());
+                                        }
+                                    });
+                                    statusBarColorAnim.setDuration(1000L);
+                                    statusBarColorAnim.setInterpolator(
+                                            getFastOutSlowInInterpolator(context));
+                                    statusBarColorAnim.start();
+                                }
+                            }
+                        });
+
+                Palette.from(bitmap)
+                        .clearFilters()
+                        .generate(new Palette.PaletteAsyncListener() {
+                            @Override
+                            public void onGenerated(Palette palette) {
+                                // color the ripple on the image spacer (default is grey)
+                                ActivityDribbbleShotBinding binding = DataBindingUtil.findBinding(imageView);
+                                View shotSpacer = binding.dribbbleComments.findViewById(R.id.shot_spacer);
+                                shotSpacer.setBackground(
+                                        ViewUtils.createRipple(palette, 0.25f, 0.5f,
+                                                ContextCompat.getColor(context, R.color.mid_grey),
+                                                true));
+                                // slightly more opaque ripple on the pinned image to compensate
+                                // for the scrim
+                                imageView.setForeground(
+                                        ViewUtils.createRipple(palette, 0.3f, 0.6f,
+                                                ContextCompat.getColor(context, R.color.mid_grey),
+                                                true));
+                            }
+                        });
+
+                // TODO should keep the background if the image contains transparency?!
+                imageView.setBackground(null);
+                return false;
+            }
+
+            @Override
+            public boolean onLoadFailed(@Nullable GlideException e, Object model,
+                                        Target<Drawable> target, boolean isFirstResource) {
+                return false;
+            }
+        };
 
         // load the main image
         final int[] imageSize = shot.images.bestSize();
@@ -314,8 +435,25 @@ public class DribbbleShot extends Activity {
                 .override(imageSize[0], imageSize[1])
                 .transition(withCrossFade())
                 .into(imageView);
-        imageView.setOnClickListener(shotClick);
-        shotSpacer.setOnClickListener(shotClick);
+    }
+
+    @BindingAdapter("app:styledText")
+    public static void setDribbbleDescription(TextView textView, Shot shot) {
+        if (shot == null) {
+            return;
+        }
+
+        final Spanned descText = shot.getParsedDescription(
+                ContextCompat.getColorStateList(textView.getContext(), R.color.dribbble_links),
+                ContextCompat.getColor(textView.getContext(), R.color.dribbble_link_highlight));
+        textView.setText(descText);
+        if (textView instanceof BaselineGridTextView) {
+            HtmlUtils.setTextWithNiceLinks(textView, descText);
+        }
+    }
+
+    void bindShot(final boolean postponeEnterTransition) {
+        final Resources res = getResources();
 
         if (postponeEnterTransition) postponeEnterTransition();
         imageView.getViewTreeObserver().addOnPreDrawListener(
@@ -329,23 +467,23 @@ public class DribbbleShot extends Activity {
             }
         });
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            ((FabOverlapTextView) title).setText(shot.title);
-        } else {
-            ((TextView) title).setText(shot.title);
-        }
-        if (!TextUtils.isEmpty(shot.description)) {
-            final Spanned descText = shot.getParsedDescription(
-                    ContextCompat.getColorStateList(this, R.color.dribbble_links),
-                    ContextCompat.getColor(this, R.color.dribbble_link_highlight));
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                ((FabOverlapTextView) description).setText(descText);
-            } else {
-                HtmlUtils.setTextWithNiceLinks((TextView) description, descText);
-            }
-        } else {
-            description.setVisibility(View.GONE);
-        }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//            ((FabOverlapTextView) title).setText(shot.title);
+//        } else {
+//            ((TextView) title).setText(shot.title);
+//        }
+//        if (!TextUtils.isEmpty(shot.description)) {
+//            final Spanned descText = shot.getParsedDescription(
+//                    ContextCompat.getColorStateList(this, R.color.dribbble_links),
+//                    ContextCompat.getColor(this, R.color.dribbble_link_highlight));
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//                ((FabOverlapTextView) description).setText(descText);
+//            } else {
+//                HtmlUtils.setTextWithNiceLinks((TextView) description, descText);
+//            }
+//        } else {
+//            description.setVisibility(View.GONE);
+//        }
         NumberFormat nf = NumberFormat.getInstance();
         likeCount.setText(
                 res.getQuantityString(R.plurals.likes,
@@ -445,12 +583,9 @@ public class DribbbleShot extends Activity {
         }, 3000L);
     }
 
-    private View.OnClickListener shotClick = new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-            openLink(shot.url);
-        }
-    };
+    public void onShotClick(String shotUrl) {
+        openLink(shotUrl);
+    }
 
     /**
      * We run a transition to expand/collapse comments. Scrolling the RecyclerView while this is
@@ -791,7 +926,7 @@ public class DribbbleShot extends Activity {
         public int getItemViewType(int position) {
             if (position == 0)  return R.layout.dribbble_shot_description;
             if (position == 1) {
-                if (loading)  return R.layout.loading;
+                if (loading)  return R.layout.loading_databinding;
                 if (noComments) return R.layout.dribbble_no_comments;
             }
             if (footer != null) {
@@ -820,7 +955,7 @@ public class DribbbleShot extends Activity {
                     return new SimpleViewHolder(description);
                 case R.layout.dribbble_comment:
                     return createCommentHolder(parent, viewType);
-                case R.layout.loading:
+                case R.layout.loading_databinding:
                 case R.layout.dribbble_no_comments:
                     return new SimpleViewHolder(
                             getLayoutInflater().inflate(viewType, parent, false));

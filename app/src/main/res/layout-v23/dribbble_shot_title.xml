@@ -17,39 +17,50 @@
 
 <!-- layout_[width|height] not needed as this is only included in a GridLayout -->
 <!--suppress AndroidDomInspection -->
-<merge
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    tools:showIn="@layout/dribbble_shot_description">
+<layout xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        tools:showIn="@layout/dribbble_shot_description">
+    <data>
+        <variable
+            name="shot"
+            type="io.plaidapp.data.api.dribbble.model.Shot" />
+        <import type="android.text.TextUtils" />
+        <import type="android.view.View" />
+    </data>
+    <merge>
+        <io.plaidapp.ui.widget.FabOverlapTextView
+            android:id="@+id/shot_title"
+            android:layout_columnSpan="3"
+            android:layout_width="match_parent"
+            android:paddingStart="@dimen/padding_normal"
+            android:paddingTop="@dimen/padding_normal"
+            android:paddingEnd="@dimen/padding_normal"
+            android:paddingBottom="@dimen/padding_normal"
+            android:background="@color/light_grey"
+            android:breakStrategy="simple"
+            app:fabGravity="bottom|end"
+            app:fabOverlayHeight="@dimen/half_fab_plus_single_padding"
+            app:fabOverlayWidth="@dimen/fab_plus_single_padding"
+            android:text="@{shot.title}"
+            tools:text="Dribbble shot title"
+            android:textAppearance="@style/TextAppearance.DribbbleShotTitle" />
 
-    <io.plaidapp.ui.widget.FabOverlapTextView
-        android:id="@+id/shot_title"
-        android:layout_columnSpan="3"
-        android:layout_width="match_parent"
-        android:paddingStart="@dimen/padding_normal"
-        android:paddingTop="@dimen/padding_normal"
-        android:paddingEnd="@dimen/padding_normal"
-        android:paddingBottom="@dimen/padding_normal"
-        android:background="@color/light_grey"
-        android:breakStrategy="simple"
-        android:textAppearance="@style/TextAppearance.DribbbleShotTitle"
-        app:fabGravity="bottom|end"
-        app:fabOverlayHeight="@dimen/half_fab_plus_single_padding"
-        app:fabOverlayWidth="@dimen/fab_plus_single_padding"
-        tools:text="Dribbble shot title" />
+        <io.plaidapp.ui.widget.FabOverlapTextView
+            android:id="@+id/shot_description"
+            android:layout_columnSpan="3"
+            android:paddingStart="@dimen/padding_normal"
+            android:paddingTop="@dimen/padding_normal"
+            android:paddingEnd="@dimen/padding_normal"
+            android:breakStrategy="high_quality"
+            app:fabGravity="top|end"
+            app:fabOverlayHeight="@dimen/half_fab_plus_single_padding"
+            app:fabOverlayWidth="@dimen/fab_plus_single_padding"
+            android:visibility="@{TextUtils.isEmpty(shot.description) ? View.GONE : View.VISIBLE}"
+            tools:text="Check out this sweet eye candy!"
+            android:textAppearance="@style/TextAppearance.DribbbleShotDescription" />
+            <!-- Put this back when this layout is used again -->
+            <!--app:styledText="@{shot}"-->
 
-    <io.plaidapp.ui.widget.FabOverlapTextView
-        android:id="@+id/shot_description"
-        android:layout_columnSpan="3"
-        android:breakStrategy="high_quality"
-        android:paddingEnd="@dimen/padding_normal"
-        android:paddingStart="@dimen/padding_normal"
-        android:paddingTop="@dimen/padding_normal"
-        android:textAppearance="@style/TextAppearance.DribbbleShotDescription"
-        app:fabGravity="top|end"
-        app:fabOverlayHeight="@dimen/half_fab_plus_single_padding"
-        app:fabOverlayWidth="@dimen/fab_plus_single_padding"
-        tools:text="Check out this sweet eye candy!" />
-
-</merge>
+    </merge>
+</layout>
