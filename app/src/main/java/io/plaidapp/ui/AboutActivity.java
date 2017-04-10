@@ -95,9 +95,7 @@ public class AboutActivity extends Activity {
     static class AboutPagerAdapter extends PagerAdapter {
 
         private View aboutPlaid;
-        TextView plaidDescription;
         private View aboutIcon;
-        TextView iconDescription;
         private View aboutLibs;
         RecyclerView libsList;
 
@@ -141,7 +139,7 @@ public class AboutActivity extends Activity {
                     if (aboutPlaid == null) {
                         AboutPlaidBinding binding = AboutPlaidBinding.inflate(layoutInflater);
                         aboutPlaid = binding.getRoot();
-                        plaidDescription = binding.aboutDescription;
+                        TextView plaidDescription = binding.aboutDescription;
                         // fun with spans & markdown
                         CharSequence about0 = markdown.markdownToSpannable(resources
                                 .getString(R.string.about_plaid_0), plaidDescription, null);
@@ -168,7 +166,7 @@ public class AboutActivity extends Activity {
                     if (aboutIcon == null) {
                         AboutIconBinding binding = AboutIconBinding.inflate(layoutInflater);
                         aboutIcon = binding.getRoot();
-                        iconDescription = binding.iconDescription;
+                        TextView iconDescription = binding.iconDescription;
                         CharSequence icon0 = resources.getString(R.string.about_icon_0);
                         CharSequence icon1 = markdown.markdownToSpannable(resources
                                 .getString(R.string.about_icon_1), iconDescription, null);
