@@ -81,8 +81,7 @@
             android:layout_alignParentEnd="true"
             android:layout_below="@id/library_description"
             android:text="@string/about_lib_link"
-            android:textColor="@color/text_secondary_dark"
-            android:onClick="@{() -> handlers.onLibraryLinkClick(library.link)}"/>
+            android:textColor="@color/text_secondary_dark"/>
 
     </io.plaidapp.ui.widget.ForegroundRelativeLayout>
 </layout>

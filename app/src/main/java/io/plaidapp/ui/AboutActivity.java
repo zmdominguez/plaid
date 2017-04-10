@@ -45,8 +45,6 @@ import com.bumptech.glide.Glide;
 
 import java.security.InvalidParameterException;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import in.uncod.android.bypass.Bypass;
 import io.plaidapp.R;
 import io.plaidapp.databinding.AboutIconBinding;
@@ -56,7 +54,6 @@ import io.plaidapp.databinding.AboutPlaidBinding;
 import io.plaidapp.databinding.ActivityAboutBinding;
 import io.plaidapp.databinding.LibraryBinding;
 import io.plaidapp.ui.widget.ElasticDragDismissFrameLayout;
-import io.plaidapp.ui.widget.InkPageIndicator;
 import io.plaidapp.util.HtmlUtils;
 import io.plaidapp.util.customtabs.CustomTabActivityHelper;
 import io.plaidapp.util.glide.CircleTransform;
@@ -248,15 +245,10 @@ public class AboutActivity extends Activity {
                     return new LibraryIntroHolder(AboutLibIntroBinding.inflate(LayoutInflater.from(parent.getContext()),
                             parent, false));
                 case VIEW_TYPE_LIBRARY:
-                    return createLibraryHolder(parent);
+                    return new LibraryHolder(LibraryBinding.inflate(LayoutInflater.from(parent.getContext()),
+                            parent, false), host, circleCrop);
             }
             throw new InvalidParameterException();
-        }
-
-        private @NonNull LibraryHolder createLibraryHolder(ViewGroup parent) {
-            final LibraryHolder holder = new LibraryHolder(LibraryBinding.inflate(LayoutInflater.from(parent.getContext()),
-                    parent, false), host, circleCrop);
-            return holder;
         }
 
         @Override
@@ -295,6 +287,12 @@ public class AboutActivity extends Activity {
         public void bind(final Library lib) {
             libraryBinding.setLibrary(lib);
             libraryBinding.getRoot().setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    LibraryHolder.this.onLibraryLinkClick(lib.link);
+                }
+            });
+            libraryBinding.libraryLink.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     LibraryHolder.this.onLibraryLinkClick(lib.link);
