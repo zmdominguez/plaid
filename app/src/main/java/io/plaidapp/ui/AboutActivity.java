@@ -310,12 +310,12 @@ public class AboutActivity extends Activity {
                             .build(), Uri.parse(link));
         }
 
-        @BindingAdapter("imageUrl")
-        public static void setImageUrl(ImageView imageView, Library library) {
+        @BindingAdapter({"app:imageUrl", "app:circleCrop"})
+        public static void setImageUrl(ImageView imageView, String url, boolean isCircleCropped) {
             DrawableRequestBuilder<String> request = Glide.with(imageView.getContext())
-                    .load(library.imageUrl)
+                    .load(url)
                     .placeholder(R.drawable.avatar_placeholder);
-            if (library.circleCrop) {
+            if (isCircleCropped) {
                 request.transform(circleCrop);
             }
             request.into(imageView);

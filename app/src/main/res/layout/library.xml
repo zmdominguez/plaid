@@ -49,7 +49,8 @@
             android:layout_marginStart="@dimen/avatar_margin"
             android:padding="@dimen/avatar_padding"
             android:src="@drawable/avatar_placeholder"
-            app:imageUrl="@{library}"/>
+            app:imageUrl="@{library.imageUrl}"
+            app:circleCrop="@{library.circleCrop}" />
 
         <io.plaidapp.ui.widget.BaselineGridTextView
             android:id="@+id/library_name"
