@@ -333,8 +333,7 @@ public class AboutActivity extends Activity {
             intro = (TextView) itemView;
         }
 
-        public void bind(/*Item item*/) {
-            //binding.setItem(item);
+        public void bind() {
             aboutLibIntroBinding.executePendingBindings();
         }
     }
