@@ -136,7 +136,7 @@ public class DesignerNewsLogin extends Activity {
         }
         maybeShowAccounts();
     }
-    
+
     // the primer checkbox messes with focus order so force it
     public boolean onNameEditorAction(int actionId) {
         if (actionId == EditorInfo.IME_ACTION_NEXT) {
@@ -346,19 +346,15 @@ public class DesignerNewsLogin extends Activity {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.M)
     private void setupPermissionPrimer() {
         permissionPrimer.setChecked(false);
         permissionPrimer.setVisibility(View.VISIBLE);
-        permissionPrimer.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    requestPermissions(new String[]{ Manifest.permission.GET_ACCOUNTS },
-                            PERMISSIONS_REQUEST_GET_ACCOUNTS);
-                }
-            }
-        });
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    public void onPrimerChecked() {
+        requestPermissions(new String[]{ Manifest.permission.GET_ACCOUNTS },
+                    PERMISSIONS_REQUEST_GET_ACCOUNTS);
     }
 
     public static class DesignerNewsCredentials {
