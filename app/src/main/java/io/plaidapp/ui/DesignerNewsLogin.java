@@ -82,44 +82,33 @@ public class DesignerNewsLogin extends Activity {
 
     boolean isDismissing = false;
     ViewGroup container;
-    TextView title;
-    TextInputLayout usernameLabel;
     AutoCompleteTextView username;
     CheckBox permissionPrimer;
-    TextInputLayout passwordLabel;
     EditText password;
-    FrameLayout actionsContainer;
-    Button signup;
-    Button login;
-    ProgressBar loading;
     DesignerNewsPrefs designerNewsPrefs;
     private boolean shouldPromptForPermission = false;
+    private ActivityDesignerNewsLoginBinding activityBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ActivityDesignerNewsLoginBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_designer_news_login);
-        binding.setHandlers(this);
-        binding.setCredentials(new DesignerNewsCredentials());
+        activityBinding = DataBindingUtil.setContentView(this, R.layout.activity_designer_news_login);
+        activityBinding.setHandlers(this);
+        
+        final DesignerNewsCredentials credentials = new DesignerNewsCredentials();
+        credentials.isLoading.set(false);
+        activityBinding.setCredentials(credentials);
 
-        container = binding.container;
-        title = binding.dialogTitle;
-        usernameLabel = binding.usernameFloatLabel;
-        username = binding.username;
-        permissionPrimer = binding.permissionPrimer;
-        passwordLabel = binding.passwordFloatLabel;
-        password = binding.password;
-        actionsContainer = binding.actionsContainer;
-        signup = binding.signup;
-        login = binding.login;
-        loading = binding.included.loading;
+        container = activityBinding.container;
+        username = activityBinding.username;
+        permissionPrimer = activityBinding.permissionPrimer;
+        password = activityBinding.password;
         if (!FabTransform.setup(this, container)) {
             MorphTransform.setup(this, container,
                     ContextCompat.getColor(this, R.color.background_light),
                     getResources().getDimensionPixelSize(R.dimen.dialog_corners));
         }
 
-        loading.setVisibility(View.GONE);
         setupAccountAutocomplete();
         designerNewsPrefs = DesignerNewsPrefs.get(this);
     }
@@ -148,7 +137,7 @@ public class DesignerNewsLogin extends Activity {
 
     public boolean onPasswordEditorAction(int actionId, DesignerNewsCredentials credentials) {
         if (actionId == EditorInfo.IME_ACTION_DONE && credentials.hasCredentials.get()) {
-            login.performClick();
+            activityBinding.login.performClick();
             return true;
         }
         return false;
@@ -184,7 +173,8 @@ public class DesignerNewsLogin extends Activity {
     }
 
     public void doLogin(DesignerNewsCredentials credentials) {
-        showLoading();
+        TransitionManager.beginDelayedTransition(container);
+        activityBinding.getCredentials().isLoading.set(true);
         getAccessToken(credentials);
     }
 
@@ -265,27 +255,9 @@ public class DesignerNewsLogin extends Activity {
 
     void showLoginFailed() {
         Snackbar.make(container, R.string.login_failed, Snackbar.LENGTH_SHORT).show();
-        showLogin();
+        TransitionManager.beginDelayedTransition(container);
+        activityBinding.getCredentials().isLoading.set(false);
         password.requestFocus();
-    }
-
-    private void showLoading() {
-        TransitionManager.beginDelayedTransition(container);
-        title.setVisibility(View.GONE);
-        usernameLabel.setVisibility(View.GONE);
-        permissionPrimer.setVisibility(View.GONE);
-        passwordLabel.setVisibility(View.GONE);
-        actionsContainer.setVisibility(View.GONE);
-        loading.setVisibility(View.VISIBLE);
-    }
-
-    private void showLogin() {
-        TransitionManager.beginDelayedTransition(container);
-        title.setVisibility(View.VISIBLE);
-        usernameLabel.setVisibility(View.VISIBLE);
-        passwordLabel.setVisibility(View.VISIBLE);
-        actionsContainer.setVisibility(View.VISIBLE);
-        loading.setVisibility(View.GONE);
     }
 
     private void getAccessToken(DesignerNewsCredentials credentials) {
@@ -362,6 +334,7 @@ public class DesignerNewsLogin extends Activity {
         private String password;
 
         public final ObservableBoolean hasCredentials = new ObservableBoolean();
+        public final ObservableBoolean isLoading = new ObservableBoolean();
 
         public DesignerNewsCredentials() {
         }

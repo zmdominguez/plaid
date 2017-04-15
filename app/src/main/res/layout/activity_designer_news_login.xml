@@ -24,6 +24,7 @@
         <variable
             name="credentials"
             type="io.plaidapp.ui.DesignerNewsLogin.DesignerNewsCredentials" />
+        <import type="android.view.View" />
     </data>
 
     <FrameLayout
@@ -56,14 +57,16 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/dialog_title_spacing"
                 android:layout_marginStart="@dimen/spacing_normal"
-                android:text="@string/designer_news_login"
-                android:textAppearance="@style/TextAppearance.DialogTitle" />
+                android:textAppearance="@style/TextAppearance.DialogTitle"
+                android:visibility="@{credentials.isLoading ? View.GONE : View.VISIBLE}"
+                android:text="@string/designer_news_login"/>
 
             <android.support.design.widget.TextInputLayout
                 android:id="@+id/username_float_label"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/spacing_micro"
+                android:visibility="@{credentials.isLoading ? View.GONE : View.VISIBLE}"
                 app:hintTextAppearance="@style/TextAppearance.FloatLabelHint">
 
                 <AutoCompleteTextView
@@ -86,6 +89,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/spacing_normal"
+                android:visibility="@{credentials.isLoading ? View.GONE : View.VISIBLE}"
                 android:onCheckedChanged="@{(view, isChecked) -> isChecked ? handlers.onPrimerChecked() : void}"
                 android:text="@string/get_accounts_permission_primer_message"/>
 
@@ -97,6 +101,7 @@
                 app:hintTextAppearance="@style/TextAppearance.FloatLabelHint"
                 app:passwordToggleDrawable="@drawable/asl_password_visibility"
                 app:passwordToggleEnabled="true"
+                android:visibility="@{credentials.isLoading ? View.GONE : View.VISIBLE}"
                 app:passwordToggleTint="?colorControlNormal">
 
                 <io.plaidapp.ui.widget.PasswordEntry
@@ -115,6 +120,7 @@
                 android:id="@+id/actions_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:visibility="@{credentials.isLoading ? View.GONE : View.VISIBLE}"
                 android:layout_marginTop="@dimen/padding_normal">
 
                 <Button

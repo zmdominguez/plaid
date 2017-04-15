@@ -15,6 +15,12 @@
   limitations under the License.
   -->
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
+    <data>
+        <variable
+            name="credentials"
+            type="io.plaidapp.ui.DesignerNewsLogin.DesignerNewsCredentials" />
+        <import type="android.view.View" />
+    </data>
 <ProgressBar
     android:id="@+id/loading"
     android:layout_width="match_parent"
@@ -22,6 +28,7 @@
     android:layout_margin="@dimen/spacing_huge"
     android:layout_gravity="center"
     android:indeterminate="true"
+    android:visibility="@{credentials.isLoading ? View.VISIBLE : View.GONE}"
     android:indeterminateTint="@color/grey_300"
     android:indeterminateTintMode="src_in" />
 </layout>
