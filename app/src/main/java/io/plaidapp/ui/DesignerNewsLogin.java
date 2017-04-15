@@ -134,14 +134,9 @@ public class DesignerNewsLogin extends Activity {
                     PERMISSIONS_REQUEST_GET_ACCOUNTS);
             shouldPromptForPermission = false;
         }
-        username.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                maybeShowAccounts();
-            }
-        });
         maybeShowAccounts();
     }
+    
     // the primer checkbox messes with focus order so force it
     public boolean onNameEditorAction(int actionId) {
         if (actionId == EditorInfo.IME_ACTION_NEXT) {
