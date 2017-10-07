@@ -46,7 +46,7 @@ android {
                 "DESIGNER_NEWS_CLIENT_SECRET", "\"${designer_news_client_secret}\""
         buildConfigField "String",
                 "PROCUCT_HUNT_DEVELOPER_TOKEN", "\"${product_hunt_developer_token}\""
-        def filesAuthorityValue = applicationId + ".shareprovider"
+        def filesAuthorityValue = applicationId + applicationIdSuffix + ".shareprovider";
         buildConfigField "String", "FILES_AUTHORITY", "\"${filesAuthorityValue}\""
         manifestPlaceholders = [filesAuthority: filesAuthorityValue]
     }
@@ -57,10 +57,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    flavorDimensions "demo"
+
     productFlavors {
         demo {
             applicationIdSuffix ".demo"
             versionNameSuffix "-demo"
+            dimension "demo"
         }
     }
     dataBinding {

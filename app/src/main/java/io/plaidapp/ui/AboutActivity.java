@@ -55,6 +55,12 @@ import io.plaidapp.ui.widget.ElasticDragDismissFrameLayout;
 import io.plaidapp.util.HtmlUtils;
 import io.plaidapp.util.customtabs.CustomTabActivityHelper;
 
+import io.plaidapp.util.glide.GlideApp;
+import io.plaidapp.util.glide.GlideRequest;
+
+import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
+
+
 /**
  * About screen. This displays 3 pages in a ViewPager:
  * – About Plaid
@@ -238,10 +244,16 @@ public class AboutActivity extends Activity {
                     return new LibraryIntroHolder(AboutLibIntroBinding.inflate(LayoutInflater.from(parent.getContext()),
                             parent, false));
                 case VIEW_TYPE_LIBRARY:
-                    return new LibraryHolder(LibraryBinding.inflate(LayoutInflater.from(parent.getContext()),
-                            parent, false), host, circleCrop);
+                    return createLibraryHolder(parent);
             }
             throw new InvalidParameterException();
+        }
+
+        private @NonNull LibraryHolder createLibraryHolder(ViewGroup parent) {
+            final LibraryBinding libraryBinding = LibraryBinding.inflate(LayoutInflater.from(parent.getContext()),
+                    parent, false);
+            final LibraryHolder holder = new LibraryHolder(libraryBinding, host);
+            return holder;
         }
 
         @Override
@@ -262,31 +274,16 @@ public class AboutActivity extends Activity {
         public int getItemCount() {
             return libs.length + 1; // + 1 for the static intro view
         }
-
-        private void bindLibrary(final LibraryHolder holder, final Library lib) {
-            holder.name.setText(lib.name);
-            holder.description.setText(lib.description);
-            GlideRequest<Drawable> request = GlideApp.with(holder.image.getContext())
-                    .load(lib.imageUrl)
-                    .transition(withCrossFade())
-                    .placeholder(R.drawable.avatar_placeholder);
-            if (lib.circleCrop) {
-                request.circleCrop();
-            }
-            request.into(holder.image);
-        }
     }
 
     public static class LibraryHolder extends RecyclerView.ViewHolder {
         private final LibraryBinding libraryBinding;
         private Activity host;
-        private static CircleTransform circleCrop;
 
-        LibraryHolder(LibraryBinding binding, Activity host, CircleTransform circleCrop) {
+        LibraryHolder(LibraryBinding binding, Activity host) {
             super(binding.getRoot());
             this.libraryBinding = binding;
             this.host = host;
-            this.circleCrop = circleCrop;
         }
 
         public void bind(final Library lib) {
@@ -319,11 +316,11 @@ public class AboutActivity extends Activity {
 
         @BindingAdapter({"app:imageUrl", "app:circleCrop"})
         public static void setAvatar(ImageView imageView, String url, boolean isCircleCropped) {
-            DrawableRequestBuilder<String> request = Glide.with(imageView.getContext())
+            GlideRequest<Drawable> request = GlideApp.with(imageView.getContext())
                     .load(url)
                     .placeholder(R.drawable.avatar_placeholder);
             if (isCircleCropped) {
-                request.transform(circleCrop);
+                request.circleCrop();
             }
             request.into(imageView);
         }

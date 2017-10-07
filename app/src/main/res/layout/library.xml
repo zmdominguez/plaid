@@ -54,7 +54,7 @@
 
         <io.plaidapp.ui.widget.BaselineGridTextView
             android:id="@+id/library_name"
-            style="@style/Widget.Plaid.Subhead"
+            style="@style/Widget.Plaid.SecondaryText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"

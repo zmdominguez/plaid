@@ -41,7 +41,6 @@
 
             <io.plaidapp.ui.widget.BaselineGridTextView
                 android:id="@+id/about_description"
-                style="@style/Widget.Plaid.About"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
