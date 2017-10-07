@@ -51,6 +51,7 @@
             android:textColorLink="@color/dribbble_links"
             android:textColorHighlight="@color/dribbble_link_highlight"
             tools:text="Check out this sweet eye candy!"
+            app:shotDescription="@{shot}"
             android:textAppearance="@style/TextAppearance.DribbbleShotDescription"
             android:visibility="@{TextUtils.isEmpty(shot.description) ? View.GONE : View.VISIBLE}" />
     </merge>

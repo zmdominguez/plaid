@@ -61,6 +61,7 @@
             android:background="@color/light_grey"
             app:images="@{shot.images}"
             app:activity="@{activity}"
+            app:shotBound="@{shot}"
             app:scrimColor="@color/scrim"
             app:scrimAlpha="0"
             app:maxScrimAlpha="0.4"

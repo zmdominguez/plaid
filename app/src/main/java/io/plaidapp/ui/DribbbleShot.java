@@ -46,6 +46,7 @@ import android.text.format.DateUtils;
 import android.transition.AutoTransition;
 import android.transition.Transition;
 import android.transition.TransitionManager;
+import android.util.Log;
 import android.util.Pair;
 import android.util.TypedValue;
 import android.view.MotionEvent;
@@ -320,8 +321,9 @@ public class DribbbleShot extends Activity {
     }
 
 
-    @BindingAdapter({"images", "activity"})
-    public void setImageUrl(final ParallaxScrimageView imageView, final Images images, Activity activity) {
+    @BindingAdapter({"images", "activity", "shotBound"})
+    public static void setImageUrl(final ParallaxScrimageView imageView, final Images images, Activity activity,
+                                   Shot shotBound) {
         final Context context = imageView.getContext();
         final Window window = activity.getWindow();
 
@@ -426,9 +428,9 @@ public class DribbbleShot extends Activity {
         };
 
         // load the main image
-        final int[] imageSize = shot.images.bestSize();
-        GlideApp.with(this)
-                .load(shot.images.best())
+        final int[] imageSize = shotBound.images.bestSize();
+        GlideApp.with(activity)
+                .load(shotBound.images.best())
                 .listener(shotLoadListener)
                 .diskCacheStrategy(DiskCacheStrategy.DATA)
                 .priority(Priority.IMMEDIATE)
@@ -437,18 +439,16 @@ public class DribbbleShot extends Activity {
                 .into(imageView);
     }
 
-    @BindingAdapter("app:styledText")
-    public static void setDribbbleDescription(TextView textView, Shot shot) {
-        if (shot == null) {
-            return;
-        }
+    @BindingAdapter({"shotDescription"})
+    public static void setDribbbleDescription(View textView, Shot shotDescription) {
 
-        final Spanned descText = shot.getParsedDescription(
+        final Spanned descText = shotDescription.getParsedDescription(
                 ContextCompat.getColorStateList(textView.getContext(), R.color.dribbble_links),
                 ContextCompat.getColor(textView.getContext(), R.color.dribbble_link_highlight));
-        textView.setText(descText);
-        if (textView instanceof BaselineGridTextView) {
-            HtmlUtils.setTextWithNiceLinks(textView, descText);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            ((FabOverlapTextView) textView).setText(descText);
+        } else {
+            HtmlUtils.setTextWithNiceLinks((TextView) textView, descText);
         }
     }
 
@@ -467,23 +467,6 @@ public class DribbbleShot extends Activity {
             }
         });
 
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-//            ((FabOverlapTextView) title).setText(shot.title);
-//        } else {
-//            ((TextView) title).setText(shot.title);
-//        }
-//        if (!TextUtils.isEmpty(shot.description)) {
-//            final Spanned descText = shot.getParsedDescription(
-//                    ContextCompat.getColorStateList(this, R.color.dribbble_links),
-//                    ContextCompat.getColor(this, R.color.dribbble_link_highlight));
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-//                ((FabOverlapTextView) description).setText(descText);
-//            } else {
-//                HtmlUtils.setTextWithNiceLinks((TextView) description, descText);
-//            }
-//        } else {
-//            description.setVisibility(View.GONE);
-//        }
         NumberFormat nf = NumberFormat.getInstance();
         likeCount.setText(
                 res.getQuantityString(R.plurals.likes,

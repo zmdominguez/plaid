@@ -58,9 +58,8 @@
             app:fabOverlayWidth="@dimen/fab_plus_single_padding"
             android:visibility="@{TextUtils.isEmpty(shot.description) ? View.GONE : View.VISIBLE}"
             tools:text="Check out this sweet eye candy!"
+            app:shotDescription="@{shot}"
             android:textAppearance="@style/TextAppearance.DribbbleShotDescription" />
-            <!-- Put this back when this layout is used again -->
-            <!--app:styledText="@{shot}"-->
 
     </merge>
 </layout>
