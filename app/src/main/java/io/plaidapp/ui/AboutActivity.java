@@ -20,6 +20,7 @@ import android.app.Activity;
 import android.content.res.Resources;
 import android.databinding.BindingAdapter;
 import android.databinding.DataBindingUtil;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -40,9 +41,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.bumptech.glide.DrawableRequestBuilder;
-import com.bumptech.glide.Glide;
-
 import java.security.InvalidParameterException;
 
 import in.uncod.android.bypass.Bypass;
@@ -56,13 +54,12 @@ import io.plaidapp.databinding.LibraryBinding;
 import io.plaidapp.ui.widget.ElasticDragDismissFrameLayout;
 import io.plaidapp.util.HtmlUtils;
 import io.plaidapp.util.customtabs.CustomTabActivityHelper;
-import io.plaidapp.util.glide.CircleTransform;
 
 /**
  * About screen. This displays 3 pages in a ViewPager:
- *  – About Plaid
- *  – Credit Roman for the awesome icon
- *  – Credit libraries
+ * – About Plaid
+ * – Credit Roman for the awesome icon
+ * – Credit libraries
  */
 public class AboutActivity extends Activity {
 
@@ -226,14 +223,12 @@ public class AboutActivity extends Activity {
                         "A type-safe HTTP client for Android and Java.",
                         "http://square.github.io/retrofit/",
                         "https://avatars.githubusercontent.com/u/82592",
-                        false) };
+                        false)};
 
-        private final CircleTransform circleCrop;
         final Activity host;
 
         LibraryAdapter(Activity host) {
             this.host = host;
-            circleCrop = new CircleTransform(host);
         }
 
         @Override
@@ -268,6 +263,18 @@ public class AboutActivity extends Activity {
             return libs.length + 1; // + 1 for the static intro view
         }
 
+        private void bindLibrary(final LibraryHolder holder, final Library lib) {
+            holder.name.setText(lib.name);
+            holder.description.setText(lib.description);
+            GlideRequest<Drawable> request = GlideApp.with(holder.image.getContext())
+                    .load(lib.imageUrl)
+                    .transition(withCrossFade())
+                    .placeholder(R.drawable.avatar_placeholder);
+            if (lib.circleCrop) {
+                request.circleCrop();
+            }
+            request.into(holder.image);
+        }
     }
 
     public static class LibraryHolder extends RecyclerView.ViewHolder {

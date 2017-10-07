@@ -37,7 +37,7 @@
         android:paddingBottom="@dimen/spacing_normal"
         android:paddingEnd="@dimen/padding_normal"
         android:paddingTop="@dimen/padding_normal"
-        android:stateListAnimator="@animator/raise">
+        android:stateListAnimator="@animator/raise" >
 
         <ImageView
             android:id="@+id/library_image"

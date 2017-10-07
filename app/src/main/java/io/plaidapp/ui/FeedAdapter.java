@@ -49,12 +49,15 @@ import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
+import com.bumptech.glide.ListPreloader;
+import com.bumptech.glide.RequestBuilder;
+import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.load.resource.drawable.GlideDrawable;
+import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.load.resource.gif.GifDrawable;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
+import com.bumptech.glide.util.ViewPreloadSizeProvider;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -76,23 +79,28 @@ import io.plaidapp.data.api.producthunt.PostWeigher;
 import io.plaidapp.data.api.producthunt.model.Post;
 import io.plaidapp.data.pocket.PocketUtils;
 import io.plaidapp.data.prefs.SourceManager;
+import io.plaidapp.ui.recyclerview.Divided;
 import io.plaidapp.ui.transitions.ReflowText;
 import io.plaidapp.ui.widget.BadgedFourThreeImageView;
+import io.plaidapp.ui.widget.BaselineGridTextView;
 import io.plaidapp.util.ObservableColorMatrix;
 import io.plaidapp.util.TransitionUtils;
 import io.plaidapp.util.ViewUtils;
 import io.plaidapp.util.customtabs.CustomTabActivityHelper;
 import io.plaidapp.util.glide.DribbbleTarget;
+import io.plaidapp.util.glide.GlideApp;
 
+import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 import static io.plaidapp.util.AnimUtils.getFastOutSlowInInterpolator;
 
 /**
  * Adapter for displaying a grid of {@link PlaidItem}s.
  */
 public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
-                         implements DataLoadingSubject.DataLoadingCallbacks {
+                         implements DataLoadingSubject.DataLoadingCallbacks,
+                                    ListPreloader.PreloadModelProvider<Shot> {
 
-    public static final int REQUEST_CODE_VIEW_SHOT = 5407;
+    static final int REQUEST_CODE_VIEW_SHOT = 5407;
 
     private static final int TYPE_DESIGNER_NEWS_STORY = 0;
     private static final int TYPE_DRIBBBLE_SHOT = 1;
@@ -100,15 +108,16 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     private static final int TYPE_LOADING_MORE = -1;
 
     // we need to hold on to an activity ref for the shared element transitions :/
-    private final Activity host;
+    final Activity host;
     private final LayoutInflater layoutInflater;
     private final PlaidItemSorting.PlaidItemComparator comparator;
     private final boolean pocketIsInstalled;
     private final @Nullable DataLoadingSubject dataLoading;
     private final int columns;
     private final ColorDrawable[] shotLoadingPlaceholders;
-    private final @ColorInt int initialGifBadgeColor;
+    private final ViewPreloadSizeProvider<Shot> shotPreloadSizeProvider;
 
+    private final @ColorInt int initialGifBadgeColor;
     private List<PlaidItem> items;
     private boolean showLoadingMore = false;
     private PlaidItemSorting.NaturalOrderWeigher naturalOrderWeigher;
@@ -116,15 +125,18 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     private StoryWeigher storyWeigher;
     private PostWeigher postWeigher;
 
-    public FeedAdapter(Activity hostActivity,
-                       DataLoadingSubject dataLoading,
-                       int columns,
-                       boolean pocketInstalled) {
+    FeedAdapter(Activity hostActivity,
+                @Nullable DataLoadingSubject dataLoading,
+                int columns,
+                boolean pocketInstalled, ViewPreloadSizeProvider<Shot> shotPreloadSizeProvider) {
         this.host = hostActivity;
         this.dataLoading = dataLoading;
-        dataLoading.registerCallback(this);
+        if (dataLoading != null) {
+            dataLoading.registerCallback(this);
+        }
         this.columns = columns;
         this.pocketIsInstalled = pocketInstalled;
+        this.shotPreloadSizeProvider = shotPreloadSizeProvider;
         layoutInflater = LayoutInflater.from(host);
         comparator = new PlaidItemSorting.PlaidItemComparator();
         items = new ArrayList<>();
@@ -191,7 +203,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             // reset the badge & ripple which are dynamically determined
             DribbbleShotHolder shotHolder = (DribbbleShotHolder) holder;
             shotHolder.image.setBadgeColor(initialGifBadgeColor);
-            shotHolder.image.showBadge(false);
+            shotHolder.image.setDrawBadge(false);
             shotHolder.image.setForeground(
                     ContextCompat.getDrawable(host, R.drawable.mid_grey_ripple));
         }
@@ -335,15 +347,13 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                                         final DribbbleShotHolder holder,
                                         int position) {
         final int[] imageSize = shot.images.bestSize();
-        Glide.with(host)
+        GlideApp.with(host)
                 .load(shot.images.best())
-                .listener(new RequestListener<String, GlideDrawable>() {
+                .listener(new RequestListener<Drawable>() {
 
                     @Override
-                    public boolean onResourceReady(GlideDrawable resource,
-                                                   String model,
-                                                   Target<GlideDrawable> target,
-                                                   boolean isFromMemoryCache,
+                    public boolean onResourceReady(Drawable resource, Object model,
+                                                   Target<Drawable> target, DataSource dataSource,
                                                    boolean isFirstResource) {
                         if (!shot.hasFadedIn) {
                             holder.image.setHasTransientState(true);
@@ -376,22 +386,24 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                     }
 
                     @Override
-                    public boolean onException(Exception e, String model, Target<GlideDrawable>
-                            target, boolean isFirstResource) {
+                    public boolean onLoadFailed(@Nullable GlideException e, Object model,
+                                                Target<Drawable> target, boolean isFirstResource) {
                         return false;
                     }
                 })
                 .placeholder(shotLoadingPlaceholders[position % shotLoadingPlaceholders.length])
-                .diskCacheStrategy(DiskCacheStrategy.SOURCE)
+                .diskCacheStrategy(DiskCacheStrategy.DATA)
                 .fitCenter()
+                .transition(withCrossFade())
                 .override(imageSize[0], imageSize[1])
                 .into(new DribbbleTarget(holder.image, false));
         // need both placeholder & background to prevent seeing through shot as it fades in
         holder.image.setBackground(
                 shotLoadingPlaceholders[position % shotLoadingPlaceholders.length]);
-        holder.image.showBadge(shot.animated);
+        holder.image.setDrawBadge(shot.animated);
         // need a unique transition name per shot, let's use it's url
         holder.image.setTransitionName(shot.html_url);
+        shotPreloadSizeProvider.setView(holder.image);
     }
 
     @NonNull
@@ -434,7 +446,9 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     private void bindLoadingViewHolder(LoadingMoreHolder holder, int position) {
         // only show the infinite load progress spinner if there are already items in the
         // grid i.e. it's not the first item & data is being loaded
-        holder.progress.setVisibility((position > 0 && dataLoading.isDataLoading())
+        holder.progress.setVisibility((position > 0
+                && dataLoading != null
+                && dataLoading.isDataLoading())
                 ? View.VISIBLE : View.INVISIBLE);
     }
 
@@ -455,10 +469,11 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     }
 
     private PlaidItem getItem(int position) {
+        if (position < 0 || position >= items.size()) return null;
         return items.get(position);
     }
 
-    public int getItemColumnSpan(int position) {
+    int getItemColumnSpan(int position) {
         switch (getItemViewType(position)) {
             case TYPE_LOADING_MORE:
                 return columns;
@@ -477,7 +492,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
      * sorting them (depending on the data source). Will also expand some items to span multiple
      * grid columns.
      */
-    public void addAndResort(List<? extends PlaidItem> newItems) {
+    void addAndResort(List<? extends PlaidItem> newItems) {
         weighItems(newItems);
         deduplicateAndAdd(newItems);
         sort();
@@ -585,7 +600,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         }
     }
 
-    public void removeDataSource(String dataSource) {
+    void removeDataSource(String dataSource) {
         for (int i = items.size() - 1; i >= 0; i--) {
             PlaidItem item = items.get(i);
             if (dataSource.equals(item.dataSource)) {
@@ -605,7 +620,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         return getItem(position).id;
     }
 
-    public int getItemPosition(final long itemId) {
+    int getItemPosition(final long itemId) {
         for (int position = 0; position < items.size(); position++) {
             if (getItem(position).id == itemId) return position;
         }
@@ -639,19 +654,12 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         host.getWindow().setReenterTransition(reenter);
     }
 
-    public int getDataItemCount() {
+    int getDataItemCount() {
         return items.size();
     }
 
     private int getLoadingMoreItemPosition() {
         return showLoadingMore ? getItemCount() - 1 : RecyclerView.NO_POSITION;
-    }
-
-    /**
-     * Which ViewHolder types require a divider decoration
-     */
-    public Class[] getDividedViewHolderClasses() {
-        return new Class[] { DesignerNewsStoryHolder.class, ProductHuntStoryHolder.class };
     }
 
     @Override
@@ -669,7 +677,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         notifyItemRemoved(loadingPos);
     }
 
-    public static SharedElementCallback createSharedElementReenterCallback(
+    static SharedElementCallback createSharedElementReenterCallback(
             @NonNull Context context) {
         final String shotTransitionName = context.getString(R.string.transition_shot);
         final String shotBackgroundTransitionName =
@@ -698,7 +706,21 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         };
     }
 
-    /* package */ static class DribbbleShotHolder extends RecyclerView.ViewHolder {
+    @Override
+    public List<Shot> getPreloadItems(int position) {
+        PlaidItem item = getItem(position);
+        if (item instanceof Shot) {
+            return Collections.singletonList((Shot) item);
+        }
+        return Collections.emptyList();
+    }
+
+    @Override
+    public RequestBuilder<Drawable> getPreloadRequestBuilder(Shot item) {
+        return GlideApp.with(host).load(item.images.best());
+    }
+
+    static class DribbbleShotHolder extends RecyclerView.ViewHolder {
 
         BadgedFourThreeImageView image;
 
@@ -709,9 +731,9 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     }
 
-    /* package */ static class DesignerNewsStoryHolder extends RecyclerView.ViewHolder {
+    static class DesignerNewsStoryHolder extends RecyclerView.ViewHolder implements Divided {
 
-        @BindView(R.id.story_title) TextView title;
+        @BindView(R.id.story_title) BaselineGridTextView title;
         @BindView(R.id.story_comments) TextView comments;
         @BindView(R.id.pocket) ImageButton pocket;
 
@@ -722,7 +744,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         }
     }
 
-    /* package */ static class ProductHuntStoryHolder extends RecyclerView.ViewHolder {
+    static class ProductHuntStoryHolder extends RecyclerView.ViewHolder implements Divided {
 
         @BindView(R.id.hunt_title) TextView title;
         @BindView(R.id.tagline) TextView tagline;
@@ -734,7 +756,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         }
     }
 
-    /* package */ static class LoadingMoreHolder extends RecyclerView.ViewHolder {
+    static class LoadingMoreHolder extends RecyclerView.ViewHolder {
 
         ProgressBar progress;
 

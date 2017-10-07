@@ -22,12 +22,12 @@
 
     <io.plaidapp.ui.widget.BaselineGridTextView
         android:id="@+id/libraries_intro"
-        style="@style/Widget.Plaid.About"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/spacing_normal"
         android:layout_marginTop="@dimen/spacing_xlarge"
         android:padding="@dimen/padding_normal"
+        android:textAppearance="@style/TextAppearance.About"
         android:text="@string/about_libs_intro"
         tools:showIn="@layout/about_libs" />
 </layout>

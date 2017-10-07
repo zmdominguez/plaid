@@ -44,7 +44,6 @@
 
             <io.plaidapp.ui.widget.BaselineGridTextView
                 android:id="@+id/icon_description"
-                style="@style/Widget.Plaid.About"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="top|center_horizontal"
@@ -52,6 +51,7 @@
                 android:paddingEnd="@dimen/padding_normal"
                 android:paddingStart="@dimen/padding_normal"
                 android:paddingTop="24dp"
+                android:textAppearance="@style/TextAppearance.About"
                 android:textColorHighlight="?android:colorPrimary"
                 android:textColorLink="@color/plaid_links" />
 
