@@ -27,7 +27,6 @@ import android.content.res.Resources;
 import android.databinding.BindingAdapter;
 import android.databinding.DataBindingUtil;
 import android.databinding.ObservableBoolean;
-import android.databinding.ViewDataBinding;
 import android.graphics.Bitmap;
 import android.graphics.drawable.AnimatedVectorDrawable;
 import android.graphics.drawable.Drawable;
@@ -47,7 +46,6 @@ import android.text.format.DateUtils;
 import android.transition.AutoTransition;
 import android.transition.Transition;
 import android.transition.TransitionManager;
-import android.util.Log;
 import android.util.Pair;
 import android.util.TypedValue;
 import android.view.MotionEvent;
@@ -69,8 +67,8 @@ import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 
-import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import butterknife.BindDimen;
@@ -83,20 +81,18 @@ import io.plaidapp.data.api.dribbble.model.Images;
 import io.plaidapp.data.api.dribbble.model.Like;
 import io.plaidapp.data.api.dribbble.model.Shot;
 import io.plaidapp.data.prefs.DribbblePrefs;
-import io.plaidapp.ui.recyclerview.Divided;
 import io.plaidapp.databinding.ActivityDribbbleShotBinding;
 import io.plaidapp.databinding.DribbbleEnterCommentBinding;
 import io.plaidapp.databinding.DribbbleShotDescriptionBinding;
+import io.plaidapp.ui.recyclerview.Divided;
 import io.plaidapp.ui.recyclerview.InsetDividerDecoration;
 import io.plaidapp.ui.recyclerview.SlideInItemAnimator;
 import io.plaidapp.ui.transitions.FabTransform;
 import io.plaidapp.ui.widget.AuthorTextView;
-import io.plaidapp.ui.widget.BaselineGridTextView;
 import io.plaidapp.ui.widget.CheckableImageButton;
 import io.plaidapp.ui.widget.ElasticDragDismissFrameLayout;
 import io.plaidapp.ui.widget.FABToggle;
 import io.plaidapp.ui.widget.FabOverlapTextView;
-import io.plaidapp.ui.widget.ForegroundImageView;
 import io.plaidapp.ui.widget.ParallaxScrimageView;
 import io.plaidapp.util.ColorUtils;
 import io.plaidapp.util.HtmlUtils;
@@ -128,12 +124,9 @@ public class DribbbleShot extends Activity {
     RecyclerView commentsList;
     FABToggle fab;
     View shotDescription;
-    ImageView playerAvatar;
     EditText enterComment;
     ImageButton postComment;
     private View title;
-    private TextView playerName;
-    private TextView shotTimeAgo;
     private View commentFooter;
     private ImageView userAvatar;
     private ElasticDragDismissFrameLayout.SystemChromeFader chromeFader;
@@ -173,9 +166,6 @@ public class DribbbleShot extends Activity {
         descriptionBinding.setHandlers(this);
         shotDescription = descriptionBinding.getRoot();
         title = descriptionBinding.includeTitle.shotTitle;
-        playerName = descriptionBinding.playerName;
-        playerAvatar = descriptionBinding.playerAvatar;
-        shotTimeAgo = descriptionBinding.shotTimeAgo;
 
         setupCommenting();
         commentsList.addOnScrollListener(scrollListener);
@@ -468,6 +458,44 @@ public class DribbbleShot extends Activity {
         }
     }
 
+    @BindingAdapter({"playerAvatar"})
+    public static void setPlayerAvatar(ImageView playerAvatar, String avatarUrl) {
+        int dimen = playerAvatar.getContext().getResources().getDimensionPixelSize(R.dimen.large_avatar_size);
+        GlideApp.with(playerAvatar.getContext())
+                .load(avatarUrl)
+                .circleCrop()
+                .placeholder(R.drawable.avatar_placeholder)
+                .override(dimen, dimen)
+                .transition(withCrossFade())
+                .into(playerAvatar);
+    }
+
+    public void goToPlayerProfile(View view, Shot shot) {
+        Intent player = new Intent(DribbbleShot.this, PlayerActivity.class);
+        if (shot.user.shots_count > 0) { // legit user object
+            player.putExtra(PlayerActivity.EXTRA_PLAYER, shot.user);
+        } else {
+            // search doesn't fully populate the user object,
+            // in this case send the ID not the full user
+            player.putExtra(PlayerActivity.EXTRA_PLAYER_NAME, shot.user.username);
+            player.putExtra(PlayerActivity.EXTRA_PLAYER_ID, shot.user.id);
+        }
+        ActivityOptions options =
+                ActivityOptions.makeSceneTransitionAnimation(DribbbleShot.this,
+                        view, getString(R.string.transition_player_avatar));
+        startActivity(player, options.toBundle());
+    }
+
+    @BindingAdapter({"shotTimeText"})
+    public static void setShotTimeText(TextView textView, Date createdAt) {
+        if (createdAt == null) {
+            return;
+        }
+        textView.setText(DateUtils.getRelativeTimeSpanString(createdAt.getTime(),
+                System.currentTimeMillis(),
+                DateUtils.SECOND_IN_MILLIS).toString().toLowerCase());
+    }
+
     void bindShot(final boolean postponeEnterTransition) {
         final Resources res = getResources();
 
@@ -482,46 +510,6 @@ public class DribbbleShot extends Activity {
                 return true;
             }
         });
-
-        if (shot.user != null) {
-            playerName.setText(shot.user.name.toLowerCase());
-            GlideApp.with(this)
-                    .load(shot.user.getHighQualityAvatarUrl())
-                    .circleCrop()
-                    .placeholder(R.drawable.avatar_placeholder)
-                    .override(largeAvatarSize, largeAvatarSize)
-                    .transition(withCrossFade())
-                    .into(playerAvatar);
-            View.OnClickListener playerClick = new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent player = new Intent(DribbbleShot.this, PlayerActivity.class);
-                    if (shot.user.shots_count > 0) { // legit user object
-                        player.putExtra(PlayerActivity.EXTRA_PLAYER, shot.user);
-                    } else {
-                        // search doesn't fully populate the user object,
-                        // in this case send the ID not the full user
-                        player.putExtra(PlayerActivity.EXTRA_PLAYER_NAME, shot.user.username);
-                        player.putExtra(PlayerActivity.EXTRA_PLAYER_ID, shot.user.id);
-                    }
-                    ActivityOptions options =
-                            ActivityOptions.makeSceneTransitionAnimation(DribbbleShot.this,
-                                    playerAvatar, getString(R.string.transition_player_avatar));
-                    startActivity(player, options.toBundle());
-                }
-            };
-            playerAvatar.setOnClickListener(playerClick);
-            playerName.setOnClickListener(playerClick);
-            if (shot.created_at != null) {
-                shotTimeAgo.setText(DateUtils.getRelativeTimeSpanString(shot.created_at.getTime(),
-                        System.currentTimeMillis(),
-                        DateUtils.SECOND_IN_MILLIS).toString().toLowerCase());
-            }
-        } else {
-            playerName.setVisibility(View.GONE);
-            playerAvatar.setVisibility(View.GONE);
-            shotTimeAgo.setVisibility(View.GONE);
-        }
 
         commentAnimator = new CommentAnimator();
         commentsList.setItemAnimator(commentAnimator);

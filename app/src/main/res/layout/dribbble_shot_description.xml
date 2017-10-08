@@ -100,8 +100,11 @@
             android:gravity="end"
             android:layout_marginTop="@dimen/padding_normal"
             android:paddingTop="@dimen/spacing_normal"
+            android:text="@{dribbbleShot.user.name.toLowerCase()}"
             android:textAppearance="@style/TextAppearance.CommentAuthor"
             android:clickable="false"
+            app:visibility="@{dribbbleShot != null}"
+            android:onClick="@{() -> handlers.goToPlayerProfile(playerAvatar, dribbbleShot)}"
             tools:text="—Nick B" />
 
         <io.plaidapp.ui.widget.CircularImageView
@@ -116,7 +119,10 @@
             android:textColorHighlight="@color/dribbble"
             android:stateListAnimator="@animator/raise"
             android:src="@drawable/avatar_placeholder"
-            android:foreground="@drawable/avatar_ripple" />
+            android:foreground="@drawable/avatar_ripple"
+            app:visibility="@{dribbbleShot != null}"
+            android:onClick="@{(view) -> handlers.goToPlayerProfile(view, dribbbleShot)}"
+            app:playerAvatar="@{dribbbleShot.user.getHighQualityAvatarUrl()}" />
 
         <!-- can't use a marginEnd on the above image view as it pushes in the whole column so instead
              add another column to contain the below space element -->
@@ -129,7 +135,9 @@
             android:id="@+id/shot_time_ago"
             android:layout_gravity="end"
             android:gravity="end"
+            app:visibility="@{dribbbleShot != null}"
             android:textAppearance="@style/TextAppearance.CommentTimestamp"
+            app:shotTimeText="@{dribbbleShot.created_at}"
             tools:text="3 hours ago" />
 
         <!-- GridLayout seems to ignore layout_marginBottom so add another row with a space -->
