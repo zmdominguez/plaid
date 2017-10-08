@@ -26,7 +26,6 @@
             name="shot"
             type="io.plaidapp.data.api.dribbble.model.Shot" />
         <import type="android.text.TextUtils" />
-        <import type="android.view.View" />
     </data>
     <merge>
         <io.plaidapp.ui.widget.FabOverlapTextView
@@ -56,7 +55,7 @@
             app:fabGravity="top|end"
             app:fabOverlayHeight="@dimen/half_fab_plus_single_padding"
             app:fabOverlayWidth="@dimen/fab_plus_single_padding"
-            android:visibility="@{TextUtils.isEmpty(shot.description) ? View.GONE : View.VISIBLE}"
+            app:visibility="@{!TextUtils.isEmpty(shot.description)}"
             tools:text="Check out this sweet eye candy!"
             app:shotDescription="@{shot}"
             android:textAppearance="@style/TextAppearance.DribbbleShotDescription" />

@@ -26,7 +26,6 @@
             name="shot"
             type="io.plaidapp.data.api.dribbble.model.Shot" />
         <import type="android.text.TextUtils" />
-        <import type="android.view.View" />
     </data>
     <merge>
         <io.plaidapp.ui.widget.BaselineGridTextView
@@ -53,6 +52,6 @@
             tools:text="Check out this sweet eye candy!"
             app:shotDescription="@{shot}"
             android:textAppearance="@style/TextAppearance.DribbbleShotDescription"
-            android:visibility="@{TextUtils.isEmpty(shot.description) ? View.GONE : View.VISIBLE}" />
+            app:visibility="@{!TextUtils.isEmpty(shot.description)}" />
     </merge>
 </layout>

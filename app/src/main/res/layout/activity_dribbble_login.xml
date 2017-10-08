@@ -26,7 +26,6 @@
         <variable
             name="loadingState"
             type="io.plaidapp.ui.DribbbleLogin.DribbbleLoginState" />
-        <import type="android.view.View" />
     </data>
 
     <FrameLayout
@@ -56,7 +55,7 @@
                 android:layout_marginBottom="@dimen/spacing_normal"
                 android:gravity="center"
                 android:text="@string/need_login"
-                android:visibility="@{(loadingState.isLoading || loadingState.isLoginFailed) ? View.GONE : View.VISIBLE}"
+                app:visibility="@{!(loadingState.isLoading || loadingState.isLoginFailed)}"
                 android:textAppearance="@style/TextAppearance.DialogContent"/>
 
             <Button
@@ -70,7 +69,7 @@
                 android:textAppearance="@style/TextAppearance.DarkButton"
                 android:drawableEnd="@drawable/dribbble_logo"
                 android:drawablePadding="@dimen/spacing_micro"
-                android:visibility="@{loadingState.isLoading ? View.GONE : View.VISIBLE}"
+                app:visibility="@{!loadingState.isLoading}"
                 android:onClick="@{() -> handlers.doLogin()}"/>
 
             <TextView
@@ -79,7 +78,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:textColor="@color/error"
-                android:visibility="@{(loadingState.isLoading || !loadingState.isLoginFailed) ? View.GONE : View.VISIBLE}"
+                app:visibility="@{!(loadingState.isLoading || !loadingState.isLoginFailed)}"
                 android:text="@string/login_failed"/>
 
             <include android:id="@+id/included"

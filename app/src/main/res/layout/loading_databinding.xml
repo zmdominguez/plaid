@@ -14,12 +14,12 @@
   See the License for the specific language governing permissions and
   limitations under the License.
   -->
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
         <variable
             name="loadingState"
             type="io.plaidapp.util.DatabindingUtils.LoadingState" />
-        <import type="android.view.View" />
     </data>
     <ProgressBar
         android:id="@+id/loading"
@@ -28,7 +28,7 @@
         android:layout_margin="@dimen/spacing_huge"
         android:layout_gravity="center"
         android:indeterminate="true"
-        android:visibility="@{loadingState.isLoading ? View.VISIBLE : View.GONE}"
+        app:visibility="@{loadingState.isLoading}"
         android:indeterminateTint="@color/grey_300"
         android:indeterminateTintMode="src_in" />
 </layout>
