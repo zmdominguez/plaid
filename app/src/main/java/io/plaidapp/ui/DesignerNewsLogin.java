@@ -24,6 +24,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.databinding.BindingAdapter;
 import android.databinding.DataBindingUtil;
 import android.databinding.ObservableBoolean;
 import android.net.Uri;
@@ -31,7 +32,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
-import android.support.design.widget.TextInputLayout;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.transition.TransitionManager;
@@ -44,13 +44,9 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -66,6 +62,7 @@ import io.plaidapp.data.api.designernews.model.AccessToken;
 import io.plaidapp.data.api.designernews.model.User;
 import io.plaidapp.data.prefs.DesignerNewsPrefs;
 import io.plaidapp.databinding.ActivityDesignerNewsLoginBinding;
+import io.plaidapp.databinding.ToastLoggedInConfirmationBinding;
 import io.plaidapp.ui.transitions.FabTransform;
 import io.plaidapp.ui.transitions.MorphTransform;
 import io.plaidapp.util.DatabindingUtils;
@@ -84,7 +81,6 @@ public class DesignerNewsLogin extends Activity {
     boolean isDismissing = false;
     ViewGroup container;
     AutoCompleteTextView username;
-    CheckBox permissionPrimer;
     EditText password;
     DesignerNewsPrefs designerNewsPrefs;
     private boolean shouldPromptForPermission = false;
@@ -103,9 +99,11 @@ public class DesignerNewsLogin extends Activity {
         loadingState.isLoading.set(false);
         activityBinding.setLoadingState(loadingState);
 
+        PermissionPrimerModel permissionPrimerModel = new PermissionPrimerModel();
+        activityBinding.setPermissionModel(permissionPrimerModel);
+
         container = activityBinding.container;
         username = activityBinding.username;
-        permissionPrimer = activityBinding.permissionPrimer;
         password = activityBinding.password;
         if (!FabTransform.setup(this, container)) {
             MorphTransform.setup(this, container,
@@ -170,7 +168,7 @@ public class DesignerNewsLogin extends Activity {
                 } else {
                     // denied & shouldn't ask again. deal with it (•_•) ( •_•)>⌐■-■ (⌐■_■)
                     TransitionManager.beginDelayedTransition(container);
-                    permissionPrimer.setVisibility(View.GONE);
+                    activityBinding.getPermissionModel().showPermissionPrimer.set(false);
                 }
             }
         }
@@ -220,7 +218,6 @@ public class DesignerNewsLogin extends Activity {
         }
     }
 
-    @SuppressLint("InflateParams")
     void showLoggedInUser() {
         final Call<User> authedUser = designerNewsPrefs.getApi().getAuthedUser();
         authedUser.enqueue(new Callback<User>() {
@@ -230,21 +227,10 @@ public class DesignerNewsLogin extends Activity {
                 final User user = response.body();
                 designerNewsPrefs.setLoggedInUser(user);
                 final Toast confirmLogin = new Toast(getApplicationContext());
-                final View v = LayoutInflater.from(DesignerNewsLogin.this).inflate(R.layout
-                        .toast_logged_in_confirmation, null, false);
-                ((TextView) v.findViewById(R.id.name)).setText(user.display_name.toLowerCase());
-                // need to use app context here as the activity will be destroyed shortly
-                GlideApp.with(getApplicationContext())
-                        .load(user.portrait_url)
-                        .placeholder(R.drawable.avatar_placeholder)
-                        .circleCrop()
-                        .transition(withCrossFade())
-                        .into((ImageView) v.findViewById(R.id.avatar));
-                v.findViewById(R.id.scrim).setBackground(ScrimUtil
-                        .makeCubicGradientScrimDrawable(
-                                ContextCompat.getColor(DesignerNewsLogin.this, R.color.scrim),
-                                5, Gravity.BOTTOM));
-                confirmLogin.setView(v);
+                ToastLoggedInConfirmationBinding loggedInConfirmation = ToastLoggedInConfirmationBinding.inflate(
+                        LayoutInflater.from(DesignerNewsLogin.this), null, false);
+                loggedInConfirmation.setUser(user);
+                confirmLogin.setView(loggedInConfirmation.getRoot());
                 confirmLogin.setGravity(Gravity.BOTTOM | Gravity.FILL_HORIZONTAL, 0, 0);
                 confirmLogin.setDuration(Toast.LENGTH_LONG);
                 confirmLogin.show();
@@ -302,7 +288,7 @@ public class DesignerNewsLogin extends Activity {
     private void setupAccountAutocomplete() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.GET_ACCOUNTS) ==
                 PackageManager.PERMISSION_GRANTED) {
-            permissionPrimer.setVisibility(View.GONE);
+            activityBinding.getPermissionModel().showPermissionPrimer.set(false);
             final Account[] accounts = AccountManager.get(this).getAccounts();
             final Set<String> emailSet = new HashSet<>();
             for (Account account : accounts) {
@@ -316,15 +302,15 @@ public class DesignerNewsLogin extends Activity {
             if (shouldShowRequestPermissionRationale(Manifest.permission.GET_ACCOUNTS)) {
                 setupPermissionPrimer();
             } else {
-                permissionPrimer.setVisibility(View.GONE);
+                activityBinding.getPermissionModel().showPermissionPrimer.set(false);
                 shouldPromptForPermission = true;
             }
         }
     }
 
     private void setupPermissionPrimer() {
-        permissionPrimer.setChecked(false);
-        permissionPrimer.setVisibility(View.VISIBLE);
+        activityBinding.getPermissionModel().isChecked.set(false);
+        activityBinding.getPermissionModel().showPermissionPrimer.set(true);
     }
 
     @TargetApi(Build.VERSION_CODES.M)
@@ -363,5 +349,10 @@ public class DesignerNewsLogin extends Activity {
             this.username = username;
             hasCredentials.set(hasUsernameAndPassword());
         }
+    }
+
+    public class PermissionPrimerModel {
+        public final ObservableBoolean showPermissionPrimer = new ObservableBoolean();
+        public final ObservableBoolean isChecked = new ObservableBoolean();
     }
 }

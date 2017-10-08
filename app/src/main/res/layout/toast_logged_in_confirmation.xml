@@ -14,47 +14,60 @@
   limitations under the License.
   -->
 
-<FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/scrim"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:paddingTop="150dp"
-    tools:context="io.plaidapp.ui.DribbbleLogin">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <GridLayout
-        android:layout_width="wrap_content"
+    <data>
+        <variable
+            name="user"
+            type="io.plaidapp.data.api.dribbble.model.UserInterface" />
+    </data>
+
+    <FrameLayout
+        android:id="@+id/scrim"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:alignmentMode="alignBounds"
-        android:background="@drawable/dialog_background"
-        android:columnCount="2"
-        android:elevation="@dimen/z_app_bar"
-        android:padding="@dimen/padding_normal"
-        android:rowCount="2">
+        android:paddingTop="150dp"
+        app:scrimBackground="@{5}"
+        tools:context="io.plaidapp.ui.DribbbleLogin">
 
-        <io.plaidapp.ui.widget.ForegroundImageView
-            android:id="@+id/avatar"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_margin="@dimen/padding_normal"
-            android:layout_rowSpan="2"
-            android:src="@drawable/avatar_placeholder" />
+        <GridLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:alignmentMode="alignBounds"
+            android:background="@drawable/dialog_background"
+            android:columnCount="2"
+            android:elevation="@dimen/z_app_bar"
+            android:padding="@dimen/padding_normal"
+            android:rowCount="2">
 
-        <io.plaidapp.ui.widget.BaselineGridTextView
-            android:layout_marginEnd="@dimen/padding_normal"
-            android:paddingTop="@dimen/spacing_micro"
-            android:text="@string/dribbble_logged_in_as"
-            android:textAppearance="@style/TextAppearance.Comment" />
+            <io.plaidapp.ui.widget.ForegroundImageView
+                android:id="@+id/avatar"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_margin="@dimen/padding_normal"
+                android:layout_rowSpan="2"
+                app:placeholder="@{user.avatarPlaceholder}"
+                app:loggedInAvatar="@{user.avatarUrl}"
+                android:src="@drawable/avatar_placeholder"/>
 
-        <io.plaidapp.ui.widget.BaselineGridTextView
-            android:id="@+id/name"
-            android:layout_marginEnd="@dimen/padding_normal"
-            android:paddingTop="@dimen/spacing_micro"
-            android:textAppearance="@style/TextAppearance.CommentAuthor"
-            tools:text="Nick B" />
+            <io.plaidapp.ui.widget.BaselineGridTextView
+                android:layout_marginEnd="@dimen/padding_normal"
+                android:paddingTop="@dimen/spacing_micro"
+                android:text="@string/dribbble_logged_in_as"
+                android:textAppearance="@style/TextAppearance.Comment"/>
 
-    </GridLayout>
+            <io.plaidapp.ui.widget.BaselineGridTextView
+                android:id="@+id/name"
+                android:layout_marginEnd="@dimen/padding_normal"
+                android:paddingTop="@dimen/spacing_micro"
+                android:textAppearance="@style/TextAppearance.CommentAuthor"
+                android:text="@{user.userName.toLowerCase()}"
+                tools:text="Nick B"/>
 
-</FrameLayout>
+        </GridLayout>
+
+    </FrameLayout>
+</layout>

@@ -22,12 +22,13 @@ import android.os.Parcelable;
 import java.util.Date;
 import java.util.Map;
 
+import io.plaidapp.R;
 import io.plaidapp.util.ParcelUtils;
 
 /**
  * Models a dribbble user
  */
-public class User implements Parcelable {
+public class User implements Parcelable, UserInterface {
 
     public final long id;
     public final String name;
@@ -144,6 +145,21 @@ public class User implements Parcelable {
 
     public String getHighQualityAvatarUrl() {
         return avatar_url == null ? null : avatar_url.replace("/normal/", "/original/");
+    }
+
+    @Override
+    public String getUserName() {
+        return name;
+    }
+
+    @Override
+    public String getAvatarUrl() {
+        return avatar_url;
+    }
+
+    @Override
+    public int getAvatarPlaceholder() {
+        return R.drawable.ic_player;
     }
 
     public static class Builder {

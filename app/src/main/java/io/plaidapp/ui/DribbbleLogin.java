@@ -42,6 +42,7 @@ import io.plaidapp.data.api.dribbble.model.AccessToken;
 import io.plaidapp.data.api.dribbble.model.User;
 import io.plaidapp.data.prefs.DribbblePrefs;
 import io.plaidapp.databinding.ActivityDribbbleLoginBinding;
+import io.plaidapp.databinding.ToastLoggedInConfirmationBinding;
 import io.plaidapp.ui.transitions.FabTransform;
 import io.plaidapp.ui.transitions.MorphTransform;
 import io.plaidapp.util.DatabindingUtils;
@@ -135,20 +136,10 @@ public class DribbbleLogin extends Activity {
                 final User user = response.body();
                 dribbblePrefs.setLoggedInUser(user);
                 final Toast confirmLogin = new Toast(getApplicationContext());
-                final View v = LayoutInflater.from(DribbbleLogin.this).inflate(R.layout
-                        .toast_logged_in_confirmation, null, false);
-                ((TextView) v.findViewById(R.id.name)).setText(user.name.toLowerCase());
-                // need to use app context here as the activity will be destroyed shortly
-                GlideApp.with(getApplicationContext())
-                        .load(user.avatar_url)
-                        .placeholder(R.drawable.ic_player)
-                        .circleCrop()
-                        .transition(withCrossFade())
-                        .into((ImageView) v.findViewById(R.id.avatar));
-                v.findViewById(R.id.scrim).setBackground(ScrimUtil.makeCubicGradientScrimDrawable
-                        (ContextCompat.getColor(DribbbleLogin.this, R.color.scrim),
-                                5, Gravity.BOTTOM));
-                confirmLogin.setView(v);
+                ToastLoggedInConfirmationBinding loggedInConfirmation = ToastLoggedInConfirmationBinding.inflate(
+                        LayoutInflater.from(DribbbleLogin.this), null, false);
+                loggedInConfirmation.setUser(user);
+                confirmLogin.setView(loggedInConfirmation.getRoot());
                 confirmLogin.setGravity(Gravity.BOTTOM | Gravity.FILL_HORIZONTAL, 0, 0);
                 confirmLogin.setDuration(Toast.LENGTH_LONG);
                 confirmLogin.show();

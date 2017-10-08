@@ -16,10 +16,13 @@
 
 package io.plaidapp.data.api.designernews.model;
 
+import io.plaidapp.R;
+import io.plaidapp.data.api.dribbble.model.UserInterface;
+
 /**
  * Models a Desinger News User
  */
-public class User {
+public class User implements UserInterface {
 
     public final long id;
     public final String first_name;
@@ -43,6 +46,21 @@ public class User {
         this.job = job;
         this.portrait_url = portrait_url;
         this.cover_photo_url = cover_photo_url;
+    }
+
+    @Override
+    public String getUserName() {
+        return display_name;
+    }
+
+    @Override
+    public String getAvatarUrl() {
+        return portrait_url;
+    }
+
+    @Override
+    public int getAvatarPlaceholder() {
+        return R.drawable.avatar_placeholder;
     }
 
     public static class Builder {

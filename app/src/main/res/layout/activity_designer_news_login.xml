@@ -27,6 +27,9 @@
         <variable
             name="loadingState"
             type="io.plaidapp.util.DatabindingUtils.LoadingState" />
+        <variable
+            name="permissionModel"
+            type="io.plaidapp.ui.DesignerNewsLogin.PermissionPrimerModel" />
     </data>
 
     <FrameLayout
@@ -91,7 +94,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/spacing_normal"
-                app:visibility="@{!loadingState.isLoading}"
+                android:checked="@={permissionModel.isChecked}"
+                app:visibility="@{!loadingState.isLoading &amp;&amp; permissionModel.showPermissionPrimer}"
                 android:onCheckedChanged="@{(view, isChecked) -> isChecked ? handlers.onPrimerChecked() : void}"
                 android:text="@string/get_accounts_permission_primer_message"/>
 
