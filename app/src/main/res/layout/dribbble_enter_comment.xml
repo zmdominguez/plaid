@@ -17,6 +17,17 @@
 
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto">
+    <data>
+        <variable
+            name="dribbbleState"
+            type="io.plaidapp.ui.DribbbleShot.DribbbleShotState" />
+        <variable
+            name="prefs"
+            type="io.plaidapp.data.prefs.DribbblePrefs" />
+        <variable
+            name="handlers"
+            type="io.plaidapp.ui.DribbbleShot" />
+    </data>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -34,6 +45,8 @@
             android:layout_marginStart="@dimen/avatar_margin"
             android:padding="@dimen/avatar_padding"
             android:layout_gravity="top"
+            app:userAvatar="@{prefs.getUserAvatar()}"
+            app:shouldLoadUserAvatar="@{dribbbleState.shouldLoadUserAvatar}"
             android:src="@drawable/ic_player" />
 
         <android.support.design.widget.TextInputLayout
@@ -52,6 +65,7 @@
                 android:layout_weight="1"
                 android:inputType="textCapSentences"
                 android:textSize="16sp"
+                android:onFocusChange="@{(v, hasFocus) -> handlers.onCommentFocusChange(v, hasFocus)}"
                 android:textColor="@color/text_primary_dark" />
 
         </android.support.design.widget.TextInputLayout>

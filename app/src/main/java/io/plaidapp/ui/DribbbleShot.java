@@ -128,7 +128,6 @@ public class DribbbleShot extends Activity {
     ImageButton postComment;
     private View title;
     private View commentFooter;
-    private ImageView userAvatar;
     private ElasticDragDismissFrameLayout.SystemChromeFader chromeFader;
 
     Shot shot;
@@ -470,6 +469,18 @@ public class DribbbleShot extends Activity {
                 .into(playerAvatar);
     }
 
+    @BindingAdapter({"userAvatar", "shouldLoadUserAvatar"})
+    public static void setPlayerCommentAvatar(ImageView imageView, String userAvatar, ObservableBoolean shouldLoadUserAvatar) {
+        if (shouldLoadUserAvatar.get()) {
+            GlideApp.with(imageView.getContext())
+                    .load(userAvatar)
+                    .circleCrop()
+                    .placeholder(R.drawable.ic_player)
+                    .transition(withCrossFade())
+                    .into(imageView);
+        }
+    }
+
     public void goToPlayerProfile(View view, Shot shot) {
         Intent player = new Intent(DribbbleShot.this, PlayerActivity.class);
         if (shot.user.shots_count > 0) { // legit user object
@@ -537,7 +548,26 @@ public class DribbbleShot extends Activity {
     }
 
     public void onShotClick(String shotUrl) {
-        openLink(shotUrl);
+        CustomTabActivityHelper.openCustomTab(
+                DribbbleShot.this,
+                new CustomTabsIntent.Builder()
+                        .setToolbarColor(ContextCompat.getColor(DribbbleShot.this, R.color.dribbble))
+                        .addDefaultShareMenuItem()
+                        .build(),
+                Uri.parse(shotUrl));
+    }
+
+    public void onCommentFocusChange(View view, boolean hasFocus) {
+        // kick off an anim (via animated state list) on the post button. see
+        // @drawable/ic_add_comment
+        postComment.setActivated(hasFocus);
+
+        // prevent content hovering over image when not pinned.
+        if(hasFocus) {
+            imageView.bringToFront();
+            imageView.setOffset(-imageView.getHeight());
+            imageView.setImmediatePin(true);
+        }
     }
 
     /**
@@ -550,16 +580,6 @@ public class DribbbleShot extends Activity {
             return true;
         }
     };
-
-    void openLink(String url) {
-        CustomTabActivityHelper.openCustomTab(
-                DribbbleShot.this,
-                new CustomTabsIntent.Builder()
-                    .setToolbarColor(ContextCompat.getColor(DribbbleShot.this, R.color.dribbble))
-                    .addDefaultShareMenuItem()
-                    .build(),
-                Uri.parse(url));
-    }
 
     private View.OnFocusChangeListener enterCommentFocus = new View.OnFocusChangeListener() {
         @Override
@@ -710,27 +730,19 @@ public class DribbbleShot extends Activity {
         if (dribbbleShotState.allowComment.get() && commentFooter == null) {
             DribbbleEnterCommentBinding commentBinding = DribbbleEnterCommentBinding.inflate(getLayoutInflater(),
                     commentsList, false);
+            dribbbleShotState.setShouldLoadUserAvatar(dribbblePrefs);
+            commentBinding.setPrefs(dribbblePrefs);
+            commentBinding.setDribbbleState(dribbbleShotState);
+            commentBinding.setHandlers(this);
+
             commentFooter = commentBinding.getRoot();
-            userAvatar = commentBinding.avatar;
             enterComment = commentBinding.comment;
             postComment = commentBinding.postComment;
-            enterComment.setOnFocusChangeListener(enterCommentFocus);
         } else if (!dribbbleShotState.allowComment.get() && commentFooter != null) {
             adapter.removeCommentingFooter();
             commentFooter = null;
             Toast.makeText(getApplicationContext(),
                     R.string.prospects_cant_post, Toast.LENGTH_SHORT).show();
-        }
-
-        if (dribbbleShotState.allowComment.get()
-                && dribbblePrefs.isLoggedIn()
-                && !TextUtils.isEmpty(dribbblePrefs.getUserAvatar())) {
-            GlideApp.with(this)
-                    .load(dribbblePrefs.getUserAvatar())
-                    .circleCrop()
-                    .placeholder(R.drawable.ic_player)
-                    .transition(withCrossFade())
-                    .into(userAvatar);
         }
     }
 
@@ -1133,8 +1145,14 @@ public class DribbbleShot extends Activity {
     public static class DribbbleShotState {
         public final ObservableBoolean performingLike = new ObservableBoolean();
         public final ObservableBoolean allowComment = new ObservableBoolean();
+        public final ObservableBoolean shouldLoadUserAvatar = new ObservableBoolean();
 
         public DribbbleShotState() {
+        }
+
+        public void setShouldLoadUserAvatar(DribbblePrefs dribbblePrefs) {
+            shouldLoadUserAvatar.set(allowComment.get() && dribbblePrefs.isLoggedIn()
+                && !TextUtils.isEmpty(dribbblePrefs.getUserAvatar()));
         }
     }
 
