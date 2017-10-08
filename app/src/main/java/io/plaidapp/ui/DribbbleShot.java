@@ -128,15 +128,10 @@ public class DribbbleShot extends Activity {
     RecyclerView commentsList;
     FABToggle fab;
     View shotDescription;
-    View shotSpacer;
-    Button likeCount;
-    Button viewCount;
-    Button share;
     ImageView playerAvatar;
     EditText enterComment;
     ImageButton postComment;
     private View title;
-    private View description;
     private TextView playerName;
     private TextView shotTimeAgo;
     private View commentFooter;
@@ -177,12 +172,7 @@ public class DribbbleShot extends Activity {
         descriptionBinding = DribbbleShotDescriptionBinding.inflate(getLayoutInflater(), commentsList, false);
         descriptionBinding.setHandlers(this);
         shotDescription = descriptionBinding.getRoot();
-        shotSpacer = descriptionBinding.shotSpacer;
         title = descriptionBinding.includeTitle.shotTitle;
-        description = descriptionBinding.includeTitle.shotDescription;
-        likeCount = descriptionBinding.shotLikeCount;
-        viewCount = descriptionBinding.shotViewCount;
-        share = descriptionBinding.shotShareAction;
         playerName = descriptionBinding.playerName;
         playerAvatar = descriptionBinding.playerAvatar;
         shotTimeAgo = descriptionBinding.shotTimeAgo;
@@ -240,7 +230,7 @@ public class DribbbleShot extends Activity {
 
     private void setShotToBindings(Shot shot) {
         activityBinding.setDribbbleShot(shot);
-        descriptionBinding.setShot(shot);
+        descriptionBinding.setDribbbleShot(shot);
         descriptionBinding.includeTitle.setShot(shot);
     }
 
@@ -455,6 +445,29 @@ public class DribbbleShot extends Activity {
         }
     }
 
+    public void onLikeCountClick(View likeCountButton, Shot shot) {
+        ((AnimatedVectorDrawable)((Button) likeCountButton).getCompoundDrawables()[1]).start();
+        if (shot.likes_count > 0) {
+            PlayerSheet.start(DribbbleShot.this, shot);
+        }
+    }
+
+    public void onCommentCountClick(View viewCountButton) {
+        ((AnimatedVectorDrawable)((Button) viewCountButton).getCompoundDrawables()[1]).start();
+    }
+
+    public void onShareClick(View shareButton, Shot shot) {
+        ((AnimatedVectorDrawable) ((Button)shareButton).getCompoundDrawables()[1]).start();
+        new ShareDribbbleImageTask(DribbbleShot.this, shot).execute();
+    }
+
+    @BindingAdapter({"likesBackground"})
+    public static void setLikesCountBackground(Button likesButton, boolean hasLikes) {
+        if (hasLikes) {
+            likesButton.setBackground(null); // clear touch ripple if doesn't do anything
+        }
+    }
+
     void bindShot(final boolean postponeEnterTransition) {
         final Resources res = getResources();
 
@@ -470,40 +483,6 @@ public class DribbbleShot extends Activity {
             }
         });
 
-        NumberFormat nf = NumberFormat.getInstance();
-        likeCount.setText(
-                res.getQuantityString(R.plurals.likes,
-                        (int) shot.likes_count,
-                        nf.format(shot.likes_count)));
-        likeCount.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ((AnimatedVectorDrawable) likeCount.getCompoundDrawables()[1]).start();
-                if (shot.likes_count > 0) {
-                    PlayerSheet.start(DribbbleShot.this, shot);
-                }
-            }
-        });
-        if (shot.likes_count == 0) {
-            likeCount.setBackground(null); // clear touch ripple if doesn't do anything
-        }
-        viewCount.setText(
-                res.getQuantityString(R.plurals.views,
-                        (int) shot.views_count,
-                        nf.format(shot.views_count)));
-        viewCount.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ((AnimatedVectorDrawable) viewCount.getCompoundDrawables()[1]).start();
-            }
-        });
-        share.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ((AnimatedVectorDrawable) share.getCompoundDrawables()[1]).start();
-                new ShareDribbbleImageTask(DribbbleShot.this, shot).execute();
-            }
-        });
         if (shot.user != null) {
             playerName.setText(shot.user.name.toLowerCase());
             GlideApp.with(this)

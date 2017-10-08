@@ -15,14 +15,16 @@
   limitations under the License.
   -->
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools">
+        xmlns:tools="http://schemas.android.com/tools"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
         <variable
-            name="shot"
+            name="dribbbleShot"
             type="io.plaidapp.data.api.dribbble.model.Shot" />
         <variable
             name="handlers"
             type="io.plaidapp.ui.DribbbleShot" />
+        <import type="java.text.NumberFormat" />
     </data>
     <GridLayout
         android:layout_width="match_parent"
@@ -40,7 +42,7 @@
         <io.plaidapp.ui.widget.FourThreeView
             android:id="@+id/shot_spacer"
             android:layout_columnSpan="3"
-            android:onClick="@{() -> handlers.onShotClick(shot.url)}"
+            android:onClick="@{() -> handlers.onShotClick(dribbbleShot.url)}"
             android:background="@drawable/mid_grey_bounded_ripple" />
 
         <include android:id="@+id/include_title" layout="@layout/dribbble_shot_title" />
@@ -60,7 +62,10 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:drawableTop="@drawable/avd_likes"
+                android:text="@{@plurals/likes((int) dribbbleShot.likes_count, NumberFormat.getInstance().format(dribbbleShot.likes_count))}"
                 tools:text="33 likes"
+                app:likesBackground="@{dribbbleShot.likes_count == 0}"
+                android:onClick="@{(v) -> handlers.onLikeCountClick(v, dribbbleShot)}"
                 style="@style/Widget.Plaid.InlineActionButton" />
 
             <Button
@@ -71,6 +76,8 @@
                 android:drawableTop="@drawable/avd_views"
                 android:background="@null"
                 tools:text="33 views"
+                android:text="@{@plurals/views((int) dribbbleShot.views_count, NumberFormat.getInstance().format(dribbbleShot.views_count))}"
+                android:onClick="@{(v) -> handlers.onCommentCountClick(v)}"
                 style="@style/Widget.Plaid.InlineActionButton" />
 
             <Button
@@ -81,6 +88,7 @@
                 android:layout_marginBottom="@dimen/spacing_normal"
                 android:drawableTop="@drawable/avd_share"
                 android:text="@string/share"
+                android:onClick="@{(v) -> handlers.onShareClick(v, dribbbleShot)}"
                 style="@style/Widget.Plaid.InlineActionButton" />
 
         </LinearLayout>
