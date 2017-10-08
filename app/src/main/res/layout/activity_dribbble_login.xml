@@ -15,61 +15,78 @@
   limitations under the License.
   -->
 
-<FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:onClick="dismiss"
-    tools:context="io.plaidapp.ui.DribbbleLogin">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <LinearLayout
-        android:id="@+id/container"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/spacing_xlarge"
-        android:padding="@dimen/spacing_large"
-        android:paddingTop="@dimen/spacing_xlarge"
-        android:orientation="vertical"
-        android:layout_gravity="center"
-        android:elevation="@dimen/z_fab"
-        android:background="@drawable/dialog_background"
-        android:transitionName="@string/transition_dribbble_login">
+    <data>
+        <variable
+            name="handlers"
+            type="io.plaidapp.ui.DribbbleLogin" />
+        <variable
+            name="loadingState"
+            type="io.plaidapp.ui.DribbbleLogin.DribbbleLoginState" />
+        <import type="android.view.View" />
+    </data>
 
-        <io.plaidapp.ui.widget.BaselineGridTextView
-            android:id="@+id/login_message"
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:onClick="dismiss"
+        tools:context="io.plaidapp.ui.DribbbleLogin">
+
+        <LinearLayout
+            android:id="@+id/container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="@dimen/spacing_normal"
-            android:gravity="center"
-            android:text="@string/need_login"
-            android:textAppearance="@style/TextAppearance.DialogContent" />
+            android:layout_margin="@dimen/spacing_xlarge"
+            android:padding="@dimen/spacing_large"
+            android:paddingTop="@dimen/spacing_xlarge"
+            android:orientation="vertical"
+            android:layout_gravity="center"
+            android:elevation="@dimen/z_fab"
+            android:background="@drawable/dialog_background"
+            android:transitionName="@string/transition_dribbble_login">
 
-        <Button
-            android:id="@+id/login"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:padding="@dimen/padding_normal"
-            android:layout_marginBottom="@dimen/spacing_micro"
-            android:text="@string/login_to"
-            android:textAppearance="@style/TextAppearance.DarkButton"
-            android:drawableEnd="@drawable/dribbble_logo"
-            android:drawablePadding="@dimen/spacing_micro"
-            android:onClick="doLogin" />
+            <io.plaidapp.ui.widget.BaselineGridTextView
+                android:id="@+id/login_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="@dimen/spacing_normal"
+                android:gravity="center"
+                android:text="@string/need_login"
+                android:visibility="@{(loadingState.isLoading || loadingState.isLoginFailed) ? View.GONE : View.VISIBLE}"
+                android:textAppearance="@style/TextAppearance.DialogContent"/>
 
-        <TextView
-            android:id="@+id/login_failed_message"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:textColor="@color/error"
-            android:visibility="gone"
-            android:text="@string/login_failed" />
+            <Button
+                android:id="@+id/login"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:padding="@dimen/padding_normal"
+                android:layout_marginBottom="@dimen/spacing_micro"
+                android:text="@string/login_to"
+                android:textAppearance="@style/TextAppearance.DarkButton"
+                android:drawableEnd="@drawable/dribbble_logo"
+                android:drawablePadding="@dimen/spacing_micro"
+                android:visibility="@{loadingState.isLoading ? View.GONE : View.VISIBLE}"
+                android:onClick="@{() -> handlers.doLogin()}"/>
 
-        <include layout="@layout/loading" />
+            <TextView
+                android:id="@+id/login_failed_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:textColor="@color/error"
+                android:visibility="@{(loadingState.isLoading || !loadingState.isLoginFailed) ? View.GONE : View.VISIBLE}"
+                android:text="@string/login_failed"/>
 
-    </LinearLayout>
+            <include android:id="@+id/included"
+                     layout="@layout/loading_databinding"
+                     app:loadingState="@{loadingState}" />
 
-</FrameLayout>
+        </LinearLayout>
+
+    </FrameLayout>
+</layout>

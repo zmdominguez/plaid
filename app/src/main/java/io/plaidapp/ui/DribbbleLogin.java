@@ -18,6 +18,8 @@ package io.plaidapp.ui;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.databinding.DataBindingUtil;
+import android.databinding.ObservableBoolean;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
@@ -33,16 +35,16 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import io.plaidapp.BuildConfig;
 import io.plaidapp.R;
 import io.plaidapp.data.api.dribbble.DribbbleAuthService;
 import io.plaidapp.data.api.dribbble.model.AccessToken;
 import io.plaidapp.data.api.dribbble.model.User;
 import io.plaidapp.data.prefs.DribbblePrefs;
+import io.plaidapp.databinding.ActivityDribbbleLoginBinding;
 import io.plaidapp.ui.transitions.FabTransform;
 import io.plaidapp.ui.transitions.MorphTransform;
+import io.plaidapp.util.DatabindingUtils;
 import io.plaidapp.util.ScrimUtil;
 import io.plaidapp.util.glide.GlideApp;
 import retrofit2.Call;
@@ -58,20 +60,22 @@ public class DribbbleLogin extends Activity {
     private static final String STATE_LOGIN_FAILED = "loginFailed";
 
     boolean isDismissing = false;
-    boolean isLoginFailed = false;
-    @BindView(R.id.container) ViewGroup container;
-    @BindView(R.id.login_message) TextView message;
-    @BindView(R.id.login) Button login;
-    @BindView(R.id.loading) ProgressBar loading;
-    @BindView(R.id.login_failed_message) TextView loginFailed;
+    ViewGroup container;
     DribbblePrefs dribbblePrefs;
+    private ActivityDribbbleLoginBinding activityBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_dribbble_login);
-        ButterKnife.bind(this);
-        loading.setVisibility(View.GONE);
+        activityBinding = DataBindingUtil.setContentView(this, R.layout.activity_dribbble_login);
+        activityBinding.setHandlers(this);
+
+        DribbbleLoginState loadingState = new DribbbleLoginState();
+        loadingState.isLoading.set(false);
+        loadingState.isLoginFailed.set(false);
+        activityBinding.setLoadingState(loadingState);
+
+        container = activityBinding.container;
         dribbblePrefs = DribbblePrefs.get(this);
 
         if (!FabTransform.setup(this, container)) {
@@ -81,8 +85,7 @@ public class DribbbleLogin extends Activity {
         }
 
         if (savedInstanceState != null) {
-            isLoginFailed = savedInstanceState.getBoolean(STATE_LOGIN_FAILED, false);
-            loginFailed.setVisibility(isLoginFailed ? View.VISIBLE : View.GONE);
+            loadingState.isLoginFailed.set(savedInstanceState.getBoolean(STATE_LOGIN_FAILED, false));
         }
 
         checkAuthCallback(getIntent());
@@ -94,8 +97,9 @@ public class DribbbleLogin extends Activity {
         checkAuthCallback(intent);
     }
 
-    public void doLogin(View view) {
+    public void doLogin() {
         showLoading();
+        activityBinding.getLoadingState().isLoading.set(true);
         dribbblePrefs.login(DribbbleLogin.this);
     }
 
@@ -113,13 +117,14 @@ public class DribbbleLogin extends Activity {
     @Override
     protected void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putBoolean(STATE_LOGIN_FAILED, isLoginFailed);
+        savedInstanceState.putBoolean(STATE_LOGIN_FAILED,
+                activityBinding.getLoadingState().isLoginFailed.get());
     }
 
     void showLoginFailed() {
-        isLoginFailed = true;
+        activityBinding.getLoadingState().isLoginFailed.set(true);
+        activityBinding.getLoadingState().isLoading.set(false);
         showLogin();
-        loginFailed.setVisibility(View.VISIBLE);
     }
 
     void showLoggedInUser() {
@@ -155,17 +160,10 @@ public class DribbbleLogin extends Activity {
 
     private void showLoading() {
         TransitionManager.beginDelayedTransition(container);
-        message.setVisibility(View.GONE);
-        login.setVisibility(View.GONE);
-        loginFailed.setVisibility(View.GONE);
-        loading.setVisibility(View.VISIBLE);
     }
 
     private void showLogin() {
         TransitionManager.beginDelayedTransition(container);
-        message.setVisibility(View.VISIBLE);
-        login.setVisibility(View.VISIBLE);
-        loading.setVisibility(View.GONE);
     }
 
     private void checkAuthCallback(Intent intent) {
@@ -196,7 +194,7 @@ public class DribbbleLogin extends Activity {
                     showLoginFailed();
                     return;
                 }
-                isLoginFailed = false;
+                activityBinding.getLoadingState().isLoginFailed.set(false);
                 dribbblePrefs.setAccessToken(response.body().access_token);
                 showLoggedInUser();
                 setResult(Activity.RESULT_OK);
@@ -209,5 +207,12 @@ public class DribbbleLogin extends Activity {
                 showLoginFailed();
             }
         });
+    }
+
+    public static class DribbbleLoginState extends DatabindingUtils.LoadingState {
+        public final ObservableBoolean isLoginFailed = new ObservableBoolean();
+
+        public DribbbleLoginState() {
+        }
     }
 }

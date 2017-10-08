@@ -68,6 +68,7 @@ import io.plaidapp.data.prefs.DesignerNewsPrefs;
 import io.plaidapp.databinding.ActivityDesignerNewsLoginBinding;
 import io.plaidapp.ui.transitions.FabTransform;
 import io.plaidapp.ui.transitions.MorphTransform;
+import io.plaidapp.util.DatabindingUtils;
 import io.plaidapp.util.ScrimUtil;
 import io.plaidapp.util.glide.GlideApp;
 import retrofit2.Call;
@@ -96,8 +97,11 @@ public class DesignerNewsLogin extends Activity {
         activityBinding.setHandlers(this);
         
         final DesignerNewsCredentials credentials = new DesignerNewsCredentials();
-        credentials.isLoading.set(false);
         activityBinding.setCredentials(credentials);
+
+        DatabindingUtils.LoadingState loadingState = new DatabindingUtils.LoadingState();
+        loadingState.isLoading.set(false);
+        activityBinding.setLoadingState(loadingState);
 
         container = activityBinding.container;
         username = activityBinding.username;
@@ -174,7 +178,7 @@ public class DesignerNewsLogin extends Activity {
 
     public void doLogin(DesignerNewsCredentials credentials) {
         TransitionManager.beginDelayedTransition(container);
-        activityBinding.getCredentials().isLoading.set(true);
+        activityBinding.getLoadingState().isLoading.set(true);
         getAccessToken(credentials);
     }
 
@@ -256,7 +260,7 @@ public class DesignerNewsLogin extends Activity {
     void showLoginFailed() {
         Snackbar.make(container, R.string.login_failed, Snackbar.LENGTH_SHORT).show();
         TransitionManager.beginDelayedTransition(container);
-        activityBinding.getCredentials().isLoading.set(false);
+        activityBinding.getLoadingState().isLoading.set(false);
         password.requestFocus();
     }
 
@@ -334,7 +338,6 @@ public class DesignerNewsLogin extends Activity {
         private String password;
 
         public final ObservableBoolean hasCredentials = new ObservableBoolean();
-        public final ObservableBoolean isLoading = new ObservableBoolean();
 
         public DesignerNewsCredentials() {
         }
