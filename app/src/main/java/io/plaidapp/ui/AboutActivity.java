@@ -54,11 +54,8 @@ import io.plaidapp.databinding.LibraryBinding;
 import io.plaidapp.ui.widget.ElasticDragDismissFrameLayout;
 import io.plaidapp.util.HtmlUtils;
 import io.plaidapp.util.customtabs.CustomTabActivityHelper;
-
 import io.plaidapp.util.glide.GlideApp;
 import io.plaidapp.util.glide.GlideRequest;
-
-import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
 
 /**

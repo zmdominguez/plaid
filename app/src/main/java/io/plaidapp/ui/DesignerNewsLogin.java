@@ -24,7 +24,6 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.databinding.BindingAdapter;
 import android.databinding.DataBindingUtil;
 import android.databinding.ObservableBoolean;
 import android.net.Uri;
@@ -44,10 +43,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -66,13 +62,9 @@ import io.plaidapp.databinding.ToastLoggedInConfirmationBinding;
 import io.plaidapp.ui.transitions.FabTransform;
 import io.plaidapp.ui.transitions.MorphTransform;
 import io.plaidapp.util.DatabindingUtils;
-import io.plaidapp.util.ScrimUtil;
-import io.plaidapp.util.glide.GlideApp;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-
-import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
 public class DesignerNewsLogin extends Activity {
 
