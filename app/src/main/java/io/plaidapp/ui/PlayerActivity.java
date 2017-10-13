@@ -20,6 +20,7 @@ import android.app.Activity;
 import android.app.ActivityOptions;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.databinding.DataBindingUtil;
 import android.graphics.drawable.AnimatedVectorDrawable;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -52,10 +53,12 @@ import io.plaidapp.data.api.dribbble.model.Shot;
 import io.plaidapp.data.api.dribbble.model.User;
 import io.plaidapp.data.pocket.PocketUtils;
 import io.plaidapp.data.prefs.DribbblePrefs;
+import io.plaidapp.databinding.ActivityDribbblePlayerBinding;
 import io.plaidapp.ui.recyclerview.InfiniteScrollListener;
 import io.plaidapp.ui.recyclerview.SlideInItemAnimator;
 import io.plaidapp.ui.transitions.MorphTransform;
 import io.plaidapp.ui.widget.ElasticDragDismissFrameLayout;
+import io.plaidapp.util.DatabindingUtils;
 import io.plaidapp.util.DribbbleUtils;
 import io.plaidapp.util.ViewUtils;
 import io.plaidapp.util.glide.GlideApp;
@@ -86,7 +89,6 @@ public class PlayerActivity extends Activity {
     @BindView(R.id.draggable_frame) ElasticDragDismissFrameLayout draggableFrame;
     @BindView(R.id.container) ViewGroup container;
     @BindView(R.id.avatar) ImageView avatar;
-    @BindView(R.id.player_name) TextView playerName;
     @BindView(R.id.follow) Button follow;
     @BindView(R.id.player_bio) TextView bio;
     @BindView(R.id.shot_count) TextView shotCount;
@@ -99,17 +101,19 @@ public class PlayerActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_dribbble_player);
+        ActivityDribbblePlayerBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_dribbble_player);
+
         ButterKnife.bind(this);
         chromeFader = new ElasticDragDismissFrameLayout.SystemChromeFader(this);
 
         final Intent intent = getIntent();
         if (intent.hasExtra(EXTRA_PLAYER)) {
             player = intent.getParcelableExtra(EXTRA_PLAYER);
+            binding.setPlayer(player);
             bindPlayer();
         } else if (intent.hasExtra(EXTRA_PLAYER_NAME)) {
             String name = intent.getStringExtra(EXTRA_PLAYER_NAME);
-            playerName.setText(name);
+            binding.playerName.setText(name);
             if (intent.hasExtra(EXTRA_PLAYER_ID)) {
                 long userId = intent.getLongExtra(EXTRA_PLAYER_ID, 0L);
                 loadPlayer(userId);
@@ -200,13 +204,6 @@ public class PlayerActivity extends Activity {
         final Resources res = getResources();
         final NumberFormat nf = NumberFormat.getInstance();
 
-        GlideApp.with(this)
-                .load(player.getHighQualityAvatarUrl())
-                .placeholder(R.drawable.avatar_placeholder)
-                .circleCrop()
-                .transition(withCrossFade())
-                .into(avatar);
-        playerName.setText(player.name.toLowerCase());
         if (!TextUtils.isEmpty(player.bio)) {
             DribbbleUtils.parseAndSetText(bio, player.bio);
         } else {

@@ -3,6 +3,7 @@ package io.plaidapp.util;
 
 import android.databinding.BindingAdapter;
 import android.databinding.ObservableBoolean;
+import android.support.annotation.DimenRes;
 import android.support.v4.content.ContextCompat;
 import android.view.Gravity;
 import android.view.View;
@@ -11,6 +12,7 @@ import android.widget.ImageView;
 
 import io.plaidapp.R;
 import io.plaidapp.util.glide.GlideApp;
+import io.plaidapp.util.glide.GlideRequest;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
@@ -43,5 +45,20 @@ public class DatabindingUtils {
                 .circleCrop()
                 .transition(withCrossFade())
                 .into(imageView);
+    }
+
+    @BindingAdapter(value = {"playerAvatar", "sizeOverride"}, requireAll = false)
+    public static void setPlayerAvatar(ImageView playerAvatar, String avatarUrl, Float sizeOverride) {
+        GlideRequest request = GlideApp.with(playerAvatar.getContext())
+                .load(avatarUrl)
+                .circleCrop()
+                .placeholder(R.drawable.avatar_placeholder)
+                .transition(withCrossFade());
+
+        if (sizeOverride != null) {
+            request.override(sizeOverride.intValue(), sizeOverride.intValue());
+        }
+
+        request.into(playerAvatar);
     }
 }

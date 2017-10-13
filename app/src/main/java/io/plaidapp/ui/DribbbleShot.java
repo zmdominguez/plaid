@@ -457,18 +457,6 @@ public class DribbbleShot extends Activity {
         }
     }
 
-    @BindingAdapter({"playerAvatar"})
-    public static void setPlayerAvatar(ImageView playerAvatar, String avatarUrl) {
-        int dimen = playerAvatar.getContext().getResources().getDimensionPixelSize(R.dimen.large_avatar_size);
-        GlideApp.with(playerAvatar.getContext())
-                .load(avatarUrl)
-                .circleCrop()
-                .placeholder(R.drawable.avatar_placeholder)
-                .override(dimen, dimen)
-                .transition(withCrossFade())
-                .into(playerAvatar);
-    }
-
     @BindingAdapter({"userAvatar", "shouldLoadUserAvatar"})
     public static void setPlayerCommentAvatar(ImageView imageView, String userAvatar, ObservableBoolean shouldLoadUserAvatar) {
         if (shouldLoadUserAvatar.get()) {

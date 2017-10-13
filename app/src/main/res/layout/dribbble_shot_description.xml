@@ -122,7 +122,8 @@
             android:foreground="@drawable/avatar_ripple"
             app:visibility="@{dribbbleShot != null}"
             android:onClick="@{(view) -> handlers.goToPlayerProfile(view, dribbbleShot)}"
-            app:playerAvatar="@{dribbbleShot.user.getHighQualityAvatarUrl()}" />
+            app:playerAvatar="@{dribbbleShot.user.highQualityAvatarUrl}"
+            app:sizeOverride="@{@dimen/large_avatar_size}"/>
 
         <!-- can't use a marginEnd on the above image view as it pushes in the whole column so instead
              add another column to contain the below space element -->
