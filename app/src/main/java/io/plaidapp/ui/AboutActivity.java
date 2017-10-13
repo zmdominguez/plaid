@@ -311,7 +311,7 @@ public class AboutActivity extends Activity {
                             .build(), Uri.parse(link));
         }
 
-        @BindingAdapter({"app:imageUrl", "app:circleCrop"})
+        @BindingAdapter({"imageUrl", "circleCrop"})
         public static void setAvatar(ImageView imageView, String url, boolean isCircleCropped) {
             GlideRequest<Drawable> request = GlideApp.with(imageView.getContext())
                     .load(url)
