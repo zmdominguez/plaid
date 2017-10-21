@@ -97,11 +97,12 @@ public class PlayerActivity extends Activity {
     @BindView(R.id.loading) ProgressBar loading;
     @BindView(R.id.player_shots) RecyclerView shots;
     @BindInt(R.integer.num_columns) int columns;
+    private ActivityDribbblePlayerBinding activityBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ActivityDribbblePlayerBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_dribbble_player);
+        activityBinding = DataBindingUtil.setContentView(this, R.layout.activity_dribbble_player);
 
         ButterKnife.bind(this);
         chromeFader = new ElasticDragDismissFrameLayout.SystemChromeFader(this);
@@ -204,11 +205,7 @@ public class PlayerActivity extends Activity {
         final Resources res = getResources();
         final NumberFormat nf = NumberFormat.getInstance();
 
-        if (!TextUtils.isEmpty(player.bio)) {
-            DribbbleUtils.parseAndSetText(bio, player.bio);
-        } else {
-            bio.setVisibility(View.GONE);
-        }
+        activityBinding.setPlayer(player);
 
         shotCount.setText(res.getQuantityString(R.plurals.shots, player.shots_count,
                 nf.format(player.shots_count)));

@@ -24,6 +24,7 @@
         <variable
             name="player"
             type="io.plaidapp.data.api.dribbble.model.User" />
+        <import type="android.text.TextUtils" />
     </data>
 
     <io.plaidapp.ui.widget.ElasticDragDismissFrameLayout
@@ -112,6 +113,8 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/follow"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:niceDribbleLinks="@{player.bio}"
+                app:visibility="@{!TextUtils.isEmpty(player.bio)}"
                 tools:text="Designer &amp; developer at Google."/>
 
             <io.plaidapp.ui.widget.BaselineGridTextView

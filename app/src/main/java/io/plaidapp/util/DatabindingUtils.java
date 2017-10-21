@@ -5,10 +5,12 @@ import android.databinding.BindingAdapter;
 import android.databinding.ObservableBoolean;
 import android.support.annotation.DimenRes;
 import android.support.v4.content.ContextCompat;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import io.plaidapp.R;
 import io.plaidapp.util.glide.GlideApp;
@@ -60,5 +62,13 @@ public class DatabindingUtils {
         }
 
         request.into(playerAvatar);
+    }
+
+    @BindingAdapter("niceDribbleLinks")
+    public static void setNiceDribbleLinks(TextView textView, String text) {
+        if(!TextUtils.isEmpty(text)) {
+            HtmlUtils.setTextWithNiceLinks(textView, DribbbleUtils.parseDribbbleHtml(text,
+                    textView.getLinkTextColors(), textView.getHighlightColor()));
+        }
     }
 }
