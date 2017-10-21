@@ -128,9 +128,11 @@
                 app:layout_constraintHorizontal_chainStyle="spread"
                 android:paddingTop="@dimen/padding_large"
                 android:paddingBottom="@dimen/padding_large"
-                android:drawableTop="@drawable/avd_shots"
+                android:drawableTop="@{player.shots_count == 0 ? @drawable/avd_no_shots : @drawable/avd_shots}"
                 android:background="@null"
                 tools:text="1337 shots"
+                app:pluralsFile="@{@plurals/shots}"
+                app:numberFormattedCount="@{player.shots_count}"
                 style="@style/Widget.Plaid.InlineActionButton"/>
 
             <io.plaidapp.ui.widget.BaselineGridTextView
@@ -145,6 +147,9 @@
                 android:paddingBottom="@dimen/padding_large"
                 android:drawableTop="@drawable/avd_followers"
                 tools:text="1337 followers"
+                app:pluralsFile="@{@plurals/follower_count}"
+                app:numberFormattedCount="@{player.followers_count}"
+                app:removeBackground="@{player.followers_count == 0}"
                 style="@style/Widget.Plaid.InlineActionButton"/>
 
             <io.plaidapp.ui.widget.BaselineGridTextView
@@ -160,6 +165,8 @@
                 android:drawableTop="@drawable/avd_likes"
                 android:background="@null"
                 tools:text="1,000,000 likes"
+                app:pluralsFile="@{@plurals/likes}"
+                app:numberFormattedCount="@{player.likes_count}"
                 style="@style/Widget.Plaid.InlineActionButton"/>
 
         </android.support.constraint.ConstraintLayout>

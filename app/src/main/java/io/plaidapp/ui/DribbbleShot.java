@@ -450,13 +450,6 @@ public class DribbbleShot extends Activity {
         new ShareDribbbleImageTask(DribbbleShot.this, shot).execute();
     }
 
-    @BindingAdapter({"likesBackground"})
-    public static void setLikesCountBackground(Button likesButton, boolean hasLikes) {
-        if (hasLikes) {
-            likesButton.setBackground(null); // clear touch ripple if doesn't do anything
-        }
-    }
-
     @BindingAdapter({"userAvatar", "shouldLoadUserAvatar"})
     public static void setPlayerCommentAvatar(ImageView imageView, String userAvatar, Boolean shouldLoadUserAvatar) {
         if (shouldLoadUserAvatar) {

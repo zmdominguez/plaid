@@ -62,9 +62,10 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:drawableTop="@drawable/avd_likes"
-                android:text="@{@plurals/likes((int) dribbbleShot.likes_count, NumberFormat.getInstance().format(dribbbleShot.likes_count))}"
                 tools:text="33 likes"
-                app:likesBackground="@{dribbbleShot.likes_count == 0}"
+                app:pluralsFile="@{@plurals/likes}"
+                app:numberFormattedCount="@{(int)dribbbleShot.likes_count}"
+                app:removeBackground="@{dribbbleShot.likes_count == 0}"
                 android:onClick="@{(v) -> handlers.onLikeCountClick(v, dribbbleShot)}"
                 style="@style/Widget.Plaid.InlineActionButton" />
 
@@ -76,9 +77,11 @@
                 android:drawableTop="@drawable/avd_views"
                 android:background="@null"
                 tools:text="33 views"
-                android:text="@{@plurals/views((int) dribbbleShot.views_count, NumberFormat.getInstance().format(dribbbleShot.views_count))}"
+                app:pluralsFile="@{@plurals/views}"
+                app:numberFormattedCount="@{(int)dribbbleShot.views_count}"
                 android:onClick="@{(v) -> handlers.onCommentCountClick(v)}"
                 style="@style/Widget.Plaid.InlineActionButton" />
+
 
             <Button
                 android:id="@+id/shot_share_action"

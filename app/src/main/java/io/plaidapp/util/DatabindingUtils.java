@@ -5,12 +5,16 @@ import android.databinding.BindingAdapter;
 import android.databinding.ObservableBoolean;
 import android.support.annotation.DimenRes;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import java.text.NumberFormat;
 
 import io.plaidapp.R;
 import io.plaidapp.util.glide.GlideApp;
@@ -71,4 +75,19 @@ public class DatabindingUtils {
                     textView.getLinkTextColors(), textView.getHighlightColor()));
         }
     }
+
+    @BindingAdapter({"pluralsFile", "numberFormattedCount"})
+    public static void setNumberFormattedPlural(TextView textView, int pluralsFile, int count) {
+        final NumberFormat nf = NumberFormat.getInstance();
+        textView.setText(textView.getResources().getQuantityString(pluralsFile, count,
+                nf.format(count)));
+    }
+
+    @BindingAdapter({"removeBackground"})
+    public static void removeBackground(TextView textView, boolean shouldRemove) {
+        if (shouldRemove) {
+            textView.setBackground(null); // clear touch ripple if doesn't do anything
+        }
+    }
+
 }

@@ -90,11 +90,9 @@ public class PlayerActivity extends Activity {
     @BindView(R.id.container) ViewGroup container;
     @BindView(R.id.avatar) ImageView avatar;
     @BindView(R.id.follow) Button follow;
-    @BindView(R.id.player_bio) TextView bio;
-    @BindView(R.id.shot_count) TextView shotCount;
-    @BindView(R.id.followers_count) TextView followersCount;
-    @BindView(R.id.likes_count) TextView likesCount;
     @BindView(R.id.loading) ProgressBar loading;
+    TextView followersCountView;
+    TextView likesCountView;
     @BindView(R.id.player_shots) RecyclerView shots;
     @BindInt(R.integer.num_columns) int columns;
     private ActivityDribbblePlayerBinding activityBinding;
@@ -103,6 +101,9 @@ public class PlayerActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         activityBinding = DataBindingUtil.setContentView(this, R.layout.activity_dribbble_player);
+        avatar = activityBinding.avatar;
+        followersCountView = activityBinding.followersCount;
+        likesCountView = activityBinding.likesCount;
 
         ButterKnife.bind(this);
         chromeFader = new ElasticDragDismissFrameLayout.SystemChromeFader(this);
@@ -110,11 +111,10 @@ public class PlayerActivity extends Activity {
         final Intent intent = getIntent();
         if (intent.hasExtra(EXTRA_PLAYER)) {
             player = intent.getParcelableExtra(EXTRA_PLAYER);
-            binding.setPlayer(player);
             bindPlayer();
         } else if (intent.hasExtra(EXTRA_PLAYER_NAME)) {
             String name = intent.getStringExtra(EXTRA_PLAYER_NAME);
-            binding.playerName.setText(name);
+            activityBinding.playerName.setText(name);
             if (intent.hasExtra(EXTRA_PLAYER_ID)) {
                 long userId = intent.getLongExtra(EXTRA_PLAYER_ID, 0L);
                 loadPlayer(userId);
@@ -200,22 +200,10 @@ public class PlayerActivity extends Activity {
     }
 
     void bindPlayer() {
-        if (player == null) return;
-
-        final Resources res = getResources();
-        final NumberFormat nf = NumberFormat.getInstance();
 
         activityBinding.setPlayer(player);
 
-        shotCount.setText(res.getQuantityString(R.plurals.shots, player.shots_count,
-                nf.format(player.shots_count)));
-        if (player.shots_count == 0) {
-            shotCount.setCompoundDrawablesRelativeWithIntrinsicBounds(
-                    null, getDrawable(R.drawable.avd_no_shots), null, null);
-        }
-        setFollowerCount(player.followers_count);
-        likesCount.setText(res.getQuantityString(R.plurals.likes, player.likes_count,
-                nf.format(player.likes_count)));
+        if (player == null) return;
 
         // load the users shots
         dataManager = new PlayerShotsDataManager(this, player) {
@@ -225,6 +213,7 @@ public class PlayerActivity extends Activity {
                     if (adapter.getDataItemCount() == 0) {
                         loading.setVisibility(View.GONE);
                         ViewUtils.setPaddingTop(shots, likesCount.getBottom());
+                        ViewUtils.setPaddingTop(shots, likesCountView.getBottom());
                     }
                     adapter.addAndResort(data);
                 }
@@ -386,10 +375,10 @@ public class PlayerActivity extends Activity {
 
     private void setFollowerCount(int count) {
         followerCount = count;
-        followersCount.setText(getResources().getQuantityString(R.plurals.follower_count,
+        followersCountView.setText(getResources().getQuantityString(R.plurals.follower_count,
                 followerCount, NumberFormat.getInstance().format(followerCount)));
         if (followerCount == 0) {
-            followersCount.setBackground(null);
+            followersCountView.setBackground(null);
         }
     }
 
