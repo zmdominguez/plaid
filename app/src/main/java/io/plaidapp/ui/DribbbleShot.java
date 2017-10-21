@@ -458,8 +458,8 @@ public class DribbbleShot extends Activity {
     }
 
     @BindingAdapter({"userAvatar", "shouldLoadUserAvatar"})
-    public static void setPlayerCommentAvatar(ImageView imageView, String userAvatar, ObservableBoolean shouldLoadUserAvatar) {
-        if (shouldLoadUserAvatar.get()) {
+    public static void setPlayerCommentAvatar(ImageView imageView, String userAvatar, Boolean shouldLoadUserAvatar) {
+        if (shouldLoadUserAvatar) {
             GlideApp.with(imageView.getContext())
                     .load(userAvatar)
                     .circleCrop()
