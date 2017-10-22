@@ -25,8 +25,8 @@
             name="player"
             type="io.plaidapp.data.api.dribbble.model.User" />
         <variable
-            name="loadingState"
-            type="io.plaidapp.util.DatabindingUtils.LoadingState" />
+            name="playerState"
+            type="io.plaidapp.ui.PlayerActivity.PlayerActivityState" />
         <variable
             name="handlers"
             type="io.plaidapp.ui.PlayerActivity" />
@@ -102,9 +102,11 @@
                 android:paddingEnd="@dimen/padding_normal"
                 android:paddingBottom="@dimen/spacing_normal"
                 android:textAppearance="@style/TextAppearance.DarkButton"
-                android:text="@string/follow"
-                android:onClick="@{() -> handlers.follow()}"
+                android:text="@{playerState.following ? @string/following : @string/follow}"
+                android:activated="@{playerState.following}"
+                android:onClick="@{() -> playerState.following.get() ? handlers.unFollow() : handlers.follow()}"
                 android:theme="@style/LightRippleOverlay"
+                app:visibility="@{!playerState.playerIsMe}"
                 style="@style/Widget.AppCompat.Button.Colored"/>
 
             <io.plaidapp.ui.widget.BaselineGridTextView
@@ -156,8 +158,8 @@
                 android:drawableTop="@drawable/avd_followers"
                 tools:text="1337 followers"
                 app:pluralsFile="@{@plurals/follower_count}"
-                app:numberFormattedCount="@{player.followers_count}"
-                app:removeBackground="@{player.followers_count == 0}"
+                app:numberFormattedCount="@{playerState.followerCount}"
+                app:removeBackground="@{playerState.followerCount == 0}"
                 android:onClick="@{(v) -> handlers.playerActionClick(v)}"
                 style="@style/Widget.Plaid.InlineActionButton"/>
 
@@ -183,7 +185,7 @@
 
         <include
             layout="@layout/loading_databinding"
-            app:loadingState="@{loadingState}"
+            app:loadingState="@{playerState}"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/spacing_huge"

@@ -20,6 +20,8 @@ import android.app.Activity;
 import android.app.ActivityOptions;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
+import android.databinding.ObservableBoolean;
+import android.databinding.ObservableInt;
 import android.graphics.drawable.AnimatedVectorDrawable;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -32,7 +34,6 @@ import android.view.ViewGroup;
 import android.view.WindowInsets;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.integration.recyclerview.RecyclerViewPreloader;
@@ -72,9 +73,7 @@ public class PlayerActivity extends Activity {
     PlayerShotsDataManager dataManager;
     FeedAdapter adapter;
     GridLayoutManager layoutManager;
-    Boolean following;
     private ElasticDragDismissFrameLayout.SystemChromeFader chromeFader;
-    private int followerCount;
 
     ElasticDragDismissFrameLayout draggableFrame;
     ViewGroup container;
@@ -90,9 +89,10 @@ public class PlayerActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         activityBinding = DataBindingUtil.setContentView(this, R.layout.activity_dribbble_player);
-        DatabindingUtils.LoadingState loadingState = new DatabindingUtils.LoadingState();
-        activityBinding.setLoadingState(loadingState);
         activityBinding.setHandlers(this);
+
+        PlayerActivityState playerState = new PlayerActivityState();
+        activityBinding.setPlayerState(playerState);
 
         avatar = activityBinding.avatar;
         followersCountView = activityBinding.followersCount;
@@ -108,8 +108,7 @@ public class PlayerActivity extends Activity {
 
         final Intent intent = getIntent();
         if (intent.hasExtra(EXTRA_PLAYER)) {
-            player = intent.getParcelableExtra(EXTRA_PLAYER);
-            bindPlayer();
+            bindPlayer((User) intent.getParcelableExtra(EXTRA_PLAYER));
         } else if (intent.hasExtra(EXTRA_PLAYER_NAME)) {
             String name = intent.getStringExtra(EXTRA_PLAYER_NAME);
             activityBinding.playerName.setText(name);
@@ -197,9 +196,10 @@ public class PlayerActivity extends Activity {
         }
     }
 
-    void bindPlayer() {
-
+    void bindPlayer(User user) {
+        player = user;
         activityBinding.setPlayer(player);
+        activityBinding.getPlayerState().followerCount.set(player.followers_count);
 
         // load the users shots
         dataManager = new PlayerShotsDataManager(this, player) {
@@ -207,7 +207,7 @@ public class PlayerActivity extends Activity {
             public void onDataLoaded(List<Shot> data) {
                 if (data != null && data.size() > 0) {
                     if (adapter.getDataItemCount() == 0) {
-                        activityBinding.getLoadingState().isLoading.set(false);
+                        activityBinding.getPlayerState().isLoading.set(false);
                         ViewUtils.setPaddingTop(shots, likesCountView.getBottom());
                     }
                     adapter.addAndResort(data);
@@ -264,9 +264,10 @@ public class PlayerActivity extends Activity {
 
         // check if following
         if (dataManager.getDribbblePrefs().isLoggedIn()) {
-            if (player.id == dataManager.getDribbblePrefs().getUserId()) {
+            boolean playerIsMe = player.id == dataManager.getDribbblePrefs().getUserId();
+            activityBinding.getPlayerState().playerIsMe.set(playerIsMe);
+            if (playerIsMe) {
                 TransitionManager.beginDelayedTransition(container);
-                follow.setVisibility(View.GONE);
                 ViewUtils.setPaddingTop(shots, container.getHeight() - follow.getHeight()
                         - ((ViewGroup.MarginLayoutParams) follow.getLayoutParams()).bottomMargin);
             } else {
@@ -274,11 +275,10 @@ public class PlayerActivity extends Activity {
                 followingCall.enqueue(new Callback<Void>() {
                     @Override
                     public void onResponse(Call<Void> call, Response<Void> response) {
-                        following = response.isSuccessful();
-                        if (!following) return;
+                        final ObservableBoolean following = activityBinding.getPlayerState().following;
+                        following.set(response.isSuccessful());
+                        if (!following.get()) return;
                         TransitionManager.beginDelayedTransition(container);
-                        follow.setText(R.string.following);
-                        follow.setActivated(true);
                     }
 
                     @Override public void onFailure(Call<Void> call, Throwable t) { }
@@ -289,46 +289,52 @@ public class PlayerActivity extends Activity {
         if (player.shots_count > 0) {
             dataManager.loadData(); // kick off initial load
         } else {
-            activityBinding.getLoadingState().isLoading.set(false);
+            activityBinding.getPlayerState().isLoading.set(false);
         }
     }
 
     public void follow() {
         if (DribbblePrefs.get(this).isLoggedIn()) {
-            if (following != null && following) {
-                final Call<Void> unfollowCall = dataManager.getDribbbleApi().unfollow(player.id);
-                unfollowCall.enqueue(new Callback<Void>() {
-                    @Override public void onResponse(Call<Void> call, Response<Void> response) { }
+            final Call<Void> followCall = dataManager.getDribbbleApi().follow(player.id);
+            followCall.enqueue(new Callback<Void>() {
+                @Override public void onResponse(Call<Void> call, Response<Void> response) { }
 
-                    @Override public void onFailure(Call<Void> call, Throwable t) { }
-                });
-                following = false;
-                TransitionManager.beginDelayedTransition(container);
-                follow.setText(R.string.follow);
-                follow.setActivated(false);
-                setFollowerCount(followerCount - 1);
-            } else {
-                final Call<Void> followCall = dataManager.getDribbbleApi().follow(player.id);
-                followCall.enqueue(new Callback<Void>() {
-                    @Override public void onResponse(Call<Void> call, Response<Void> response) { }
-
-                    @Override public void onFailure(Call<Void> call, Throwable t) { }
-                });
-                following = true;
-                TransitionManager.beginDelayedTransition(container);
-                follow.setText(R.string.following);
-                follow.setActivated(true);
-                setFollowerCount(followerCount + 1);
-            }
+                @Override public void onFailure(Call<Void> call, Throwable t) { }
+            });
+            activityBinding.getPlayerState().following.set(true);
+            TransitionManager.beginDelayedTransition(container);
+            final ObservableInt followerCount = activityBinding.getPlayerState().followerCount;
+            followerCount.set(followerCount.get() + 1);
         } else {
-            Intent login = new Intent(this, DribbbleLogin.class);
-            MorphTransform.addExtras(login,
-                    ContextCompat.getColor(this, R.color.dribbble),
-                    getResources().getDimensionPixelSize(R.dimen.dialog_corners));
-            ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation
-                    (this, follow, getString(R.string.transition_dribbble_login));
-            startActivity(login, options.toBundle());
+            startDribbbleLogin();
         }
+    }
+
+    public void unFollow() {
+        if (DribbblePrefs.get(this).isLoggedIn()) {
+            final Call<Void> unfollowCall = dataManager.getDribbbleApi().unfollow(player.id);
+            unfollowCall.enqueue(new Callback<Void>() {
+                @Override public void onResponse(Call<Void> call, Response<Void> response) { }
+
+                @Override public void onFailure(Call<Void> call, Throwable t) { }
+            });
+            activityBinding.getPlayerState().following.set(false);
+            TransitionManager.beginDelayedTransition(container);
+            final ObservableInt followerCount = activityBinding.getPlayerState().followerCount;
+            followerCount.set(followerCount.get() - 1);
+        } else {
+            startDribbbleLogin();
+        }
+    }
+
+    private void startDribbbleLogin() {
+        Intent login = new Intent(this, DribbbleLogin.class);
+        MorphTransform.addExtras(login,
+                ContextCompat.getColor(this, R.color.dribbble),
+                getResources().getDimensionPixelSize(R.dimen.dialog_corners));
+        ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation
+                (this, follow, getString(R.string.transition_dribbble_login));
+        startActivity(login, options.toBundle());
     }
 
     public void playerActionClick(View view) {
@@ -345,8 +351,7 @@ public class PlayerActivity extends Activity {
         userCall.enqueue(new Callback<User>() {
             @Override
             public void onResponse(Call<User> call, Response<User> response) {
-                player = response.body();
-                bindPlayer();
+                bindPlayer(response.body());
             }
 
             @Override public void onFailure(Call<User> call, Throwable t) { }
@@ -358,21 +363,17 @@ public class PlayerActivity extends Activity {
         userCall.enqueue(new Callback<User>() {
             @Override
             public void onResponse(Call<User> call, Response<User> response) {
-                player = response.body();
-                bindPlayer();
+                bindPlayer(response.body());
             }
 
             @Override public void onFailure(Call<User> call, Throwable t) { }
         });
     }
 
-    private void setFollowerCount(int count) {
-        followerCount = count;
-        followersCountView.setText(getResources().getQuantityString(R.plurals.follower_count,
-                followerCount, NumberFormat.getInstance().format(followerCount)));
-        if (followerCount == 0) {
-            followersCountView.setBackground(null);
-        }
+    public class PlayerActivityState extends DatabindingUtils.LoadingState {
+        public final ObservableBoolean following = new ObservableBoolean();
+        public final ObservableInt followerCount = new ObservableInt();
+        public final ObservableBoolean playerIsMe = new ObservableBoolean();
     }
 
 }
