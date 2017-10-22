@@ -3,11 +3,8 @@ package io.plaidapp.util;
 
 import android.databinding.BindingAdapter;
 import android.databinding.ObservableBoolean;
-import android.support.annotation.DimenRes;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.graphics.drawable.DrawableCompat;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;

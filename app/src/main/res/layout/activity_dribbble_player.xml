@@ -24,6 +24,12 @@
         <variable
             name="player"
             type="io.plaidapp.data.api.dribbble.model.User" />
+        <variable
+            name="loadingState"
+            type="io.plaidapp.util.DatabindingUtils.LoadingState" />
+        <variable
+            name="handlers"
+            type="io.plaidapp.ui.PlayerActivity" />
         <import type="android.text.TextUtils" />
     </data>
 
@@ -97,6 +103,7 @@
                 android:paddingBottom="@dimen/spacing_normal"
                 android:textAppearance="@style/TextAppearance.DarkButton"
                 android:text="@string/follow"
+                android:onClick="@{() -> handlers.follow()}"
                 android:theme="@style/LightRippleOverlay"
                 style="@style/Widget.AppCompat.Button.Colored"/>
 
@@ -133,10 +140,11 @@
                 tools:text="1337 shots"
                 app:pluralsFile="@{@plurals/shots}"
                 app:numberFormattedCount="@{player.shots_count}"
+                android:onClick="@{(v) -> handlers.playerActionClick(v)}"
                 style="@style/Widget.Plaid.InlineActionButton"/>
 
             <io.plaidapp.ui.widget.BaselineGridTextView
-                android:id="@id/followers_count"
+                android:id="@+id/followers_count"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 app:layout_constraintStart_toEndOf="@id/shot_count"
@@ -150,10 +158,11 @@
                 app:pluralsFile="@{@plurals/follower_count}"
                 app:numberFormattedCount="@{player.followers_count}"
                 app:removeBackground="@{player.followers_count == 0}"
+                android:onClick="@{(v) -> handlers.playerActionClick(v)}"
                 style="@style/Widget.Plaid.InlineActionButton"/>
 
             <io.plaidapp.ui.widget.BaselineGridTextView
-                android:id="@id/likes_count"
+                android:id="@+id/likes_count"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 app:layout_constraintStart_toEndOf="@id/followers_count"
@@ -167,12 +176,14 @@
                 tools:text="1,000,000 likes"
                 app:pluralsFile="@{@plurals/likes}"
                 app:numberFormattedCount="@{player.likes_count}"
+                android:onClick="@{(v) -> handlers.playerActionClick(v)}"
                 style="@style/Widget.Plaid.InlineActionButton"/>
 
         </android.support.constraint.ConstraintLayout>
 
         <include
-            layout="@layout/loading"
+            layout="@layout/loading_databinding"
+            app:loadingState="@{loadingState}"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/spacing_huge"

@@ -19,14 +19,12 @@ package io.plaidapp.ui;
 import android.app.Activity;
 import android.app.ActivityOptions;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.databinding.DataBindingUtil;
 import android.graphics.drawable.AnimatedVectorDrawable;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
 import android.transition.TransitionManager;
 import android.view.MotionEvent;
 import android.view.View;
@@ -43,10 +41,6 @@ import com.bumptech.glide.util.ViewPreloadSizeProvider;
 import java.text.NumberFormat;
 import java.util.List;
 
-import butterknife.BindInt;
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
 import io.plaidapp.R;
 import io.plaidapp.data.api.dribbble.PlayerShotsDataManager;
 import io.plaidapp.data.api.dribbble.model.Shot;
@@ -59,14 +53,10 @@ import io.plaidapp.ui.recyclerview.SlideInItemAnimator;
 import io.plaidapp.ui.transitions.MorphTransform;
 import io.plaidapp.ui.widget.ElasticDragDismissFrameLayout;
 import io.plaidapp.util.DatabindingUtils;
-import io.plaidapp.util.DribbbleUtils;
 import io.plaidapp.util.ViewUtils;
-import io.plaidapp.util.glide.GlideApp;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-
-import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
 /**
  * A screen displaying a player's details and their shots.
@@ -86,26 +76,34 @@ public class PlayerActivity extends Activity {
     private ElasticDragDismissFrameLayout.SystemChromeFader chromeFader;
     private int followerCount;
 
-    @BindView(R.id.draggable_frame) ElasticDragDismissFrameLayout draggableFrame;
-    @BindView(R.id.container) ViewGroup container;
-    @BindView(R.id.avatar) ImageView avatar;
-    @BindView(R.id.follow) Button follow;
-    @BindView(R.id.loading) ProgressBar loading;
+    ElasticDragDismissFrameLayout draggableFrame;
+    ViewGroup container;
+    ImageView avatar;
+    Button follow;
     TextView followersCountView;
     TextView likesCountView;
-    @BindView(R.id.player_shots) RecyclerView shots;
-    @BindInt(R.integer.num_columns) int columns;
+    RecyclerView shots;
+    int columns;
     private ActivityDribbblePlayerBinding activityBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         activityBinding = DataBindingUtil.setContentView(this, R.layout.activity_dribbble_player);
+        DatabindingUtils.LoadingState loadingState = new DatabindingUtils.LoadingState();
+        activityBinding.setLoadingState(loadingState);
+        activityBinding.setHandlers(this);
+
         avatar = activityBinding.avatar;
         followersCountView = activityBinding.followersCount;
         likesCountView = activityBinding.likesCount;
+        draggableFrame = activityBinding.draggableFrame;
+        container = activityBinding.container;
+        follow = activityBinding.follow;
+        shots = activityBinding.playerShots;
 
-        ButterKnife.bind(this);
+        columns = getResources().getInteger(R.integer.num_columns);
+
         chromeFader = new ElasticDragDismissFrameLayout.SystemChromeFader(this);
 
         final Intent intent = getIntent();
@@ -203,16 +201,13 @@ public class PlayerActivity extends Activity {
 
         activityBinding.setPlayer(player);
 
-        if (player == null) return;
-
         // load the users shots
         dataManager = new PlayerShotsDataManager(this, player) {
             @Override
             public void onDataLoaded(List<Shot> data) {
                 if (data != null && data.size() > 0) {
                     if (adapter.getDataItemCount() == 0) {
-                        loading.setVisibility(View.GONE);
-                        ViewUtils.setPaddingTop(shots, likesCount.getBottom());
+                        activityBinding.getLoadingState().isLoading.set(false);
                         ViewUtils.setPaddingTop(shots, likesCountView.getBottom());
                     }
                     adapter.addAndResort(data);
@@ -294,12 +289,11 @@ public class PlayerActivity extends Activity {
         if (player.shots_count > 0) {
             dataManager.loadData(); // kick off initial load
         } else {
-            loading.setVisibility(View.GONE);
+            activityBinding.getLoadingState().isLoading.set(false);
         }
     }
 
-    @OnClick(R.id.follow)
-    void follow() {
+    public void follow() {
         if (DribbblePrefs.get(this).isLoggedIn()) {
             if (following != null && following) {
                 final Call<Void> unfollowCall = dataManager.getDribbbleApi().unfollow(player.id);
@@ -337,9 +331,8 @@ public class PlayerActivity extends Activity {
         }
     }
 
-    @OnClick({R.id.shot_count, R.id.followers_count, R.id.likes_count})
-    void playerActionClick(TextView view) {
-        ((AnimatedVectorDrawable) view.getCompoundDrawables()[1]).start();
+    public void playerActionClick(View view) {
+        ((AnimatedVectorDrawable) ((TextView)view).getCompoundDrawables()[1]).start();
         switch (view.getId()) {
             case R.id.followers_count:
                 PlayerSheet.start(PlayerActivity.this, player);
