@@ -20,11 +20,12 @@ import android.app.Activity;
 import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.Intent;
+import android.databinding.DataBindingUtil;
 import android.graphics.drawable.AnimatedVectorDrawable;
 import android.os.Bundle;
-import android.support.annotation.IntDef;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.support.annotation.PluralsRes;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -38,9 +39,6 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,9 +56,11 @@ import io.plaidapp.data.api.dribbble.model.Like;
 import io.plaidapp.data.api.dribbble.model.PlayerListable;
 import io.plaidapp.data.api.dribbble.model.Shot;
 import io.plaidapp.data.api.dribbble.model.User;
+import io.plaidapp.databinding.PlayerSheetBinding;
 import io.plaidapp.ui.recyclerview.InfiniteScrollListener;
 import io.plaidapp.ui.recyclerview.SlideInItemAnimator;
 import io.plaidapp.ui.widget.BottomSheet;
+import io.plaidapp.util.DatabindingUtils;
 import io.plaidapp.util.DribbbleUtils;
 import io.plaidapp.util.glide.GlideApp;
 
@@ -69,30 +69,19 @@ import static io.plaidapp.util.AnimUtils.getLinearOutSlowInInterpolator;
 
 public class PlayerSheet extends Activity {
 
-    private static final int MODE_SHOT_LIKES = 1;
-    private static final int MODE_FOLLOWERS = 2;
     private static final int DISMISS_DOWN = 0;
     private static final int DISMISS_CLOSE = 1;
     private static final String EXTRA_MODE = "EXTRA_MODE";
     private static final String EXTRA_SHOT = "EXTRA_SHOT";
     private static final String EXTRA_USER = "EXTRA_USER";
-
-    @Retention(RetentionPolicy.SOURCE)
-    @IntDef({
-            MODE_SHOT_LIKES,
-            MODE_FOLLOWERS
-    })
-    @interface PlayerSheetMode { }
+    private PlayerSheetBinding activityBinding;
 
     @BindView(R.id.bottom_sheet) BottomSheet bottomSheet;
     @BindView(R.id.bottom_sheet_content) ViewGroup content;
     @BindView(R.id.title_bar) ViewGroup titleBar;
     @BindView(R.id.close) ImageView close;
-    @BindView(R.id.title) TextView title;
     @BindView(R.id.player_list) RecyclerView playerList;
     @BindDimen(R.dimen.large_avatar_size) int largeAvatarSize;
-    private @Nullable Shot shot;
-    private @Nullable User player;
     private PaginatedDataManager dataManager;
     private LinearLayoutManager layoutManager;
     private PlayerAdapter adapter;
@@ -100,7 +89,7 @@ public class PlayerSheet extends Activity {
 
     public static void start(Activity launching, Shot shot) {
         Intent starter = new Intent(launching, PlayerSheet.class);
-        starter.putExtra(EXTRA_MODE, MODE_SHOT_LIKES);
+        starter.putExtra(EXTRA_MODE, PlayerSheetMode.MODE_SHOT_LIKES.ordinal());
         starter.putExtra(EXTRA_SHOT, shot);
         launching.startActivity(starter,
                 ActivityOptions.makeSceneTransitionAnimation(launching).toBundle());
@@ -108,7 +97,7 @@ public class PlayerSheet extends Activity {
 
     public static void start(Activity launching, User player) {
         Intent starter = new Intent(launching, PlayerSheet.class);
-        starter.putExtra(EXTRA_MODE, MODE_FOLLOWERS);
+        starter.putExtra(EXTRA_MODE, PlayerSheetMode.MODE_FOLLOWERS.ordinal());
         starter.putExtra(EXTRA_USER, player);
         launching.startActivity(starter,
                 ActivityOptions.makeSceneTransitionAnimation(launching).toBundle());
@@ -117,41 +106,16 @@ public class PlayerSheet extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.player_sheet);
+        activityBinding = DataBindingUtil.setContentView(this, R.layout.player_sheet);
         ButterKnife.bind(this);
 
         final Intent intent = getIntent();
-        final @PlayerSheetMode int mode = intent.getIntExtra(EXTRA_MODE, -1);
-        switch (mode) {
-            case MODE_SHOT_LIKES:
-                shot = intent.getParcelableExtra(EXTRA_SHOT);
-                title.setText(getResources().getQuantityString(
-                        R.plurals.fans,
-                        (int) shot.likes_count,
-                        NumberFormat.getInstance().format(shot.likes_count)));
-                dataManager = new ShotLikesDataManager(this, shot.id) {
-                    @Override
-                    public void onDataLoaded(List<Like> likes) {
-                        adapter.addItems(likes);
-                    }
-                };
-                break;
-            case MODE_FOLLOWERS:
-                player = intent.getParcelableExtra(EXTRA_USER);
-                title.setText(getResources().getQuantityString(
-                        R.plurals.follower_count,
-                        player.followers_count,
-                        NumberFormat.getInstance().format(player.followers_count)));
-                dataManager = new FollowersDataManager(this, player.id) {
-                    @Override
-                    public void onDataLoaded(List<Follow> followers) {
-                        adapter.addItems(followers);
-                    }
-                };
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown launch mode.");
-        }
+        PlayerSheetMode mode = PlayerSheetMode.values()[intent.getIntExtra(EXTRA_MODE, -1)];
+        activityBinding.setMode(mode);
+
+        DatabindingUtils.setNumberFormattedPlural(activityBinding.title,
+                mode.pluralsFile,
+                mode.getQuantityForTitle(intent));
 
         bottomSheet.registerCallback(new BottomSheet.Callbacks() {
             @Override
@@ -182,6 +146,7 @@ public class PlayerSheet extends Activity {
         playerList.setLayoutManager(layoutManager);
         playerList.setItemAnimator(new SlideInItemAnimator());
         adapter = new PlayerAdapter(this);
+        dataManager = mode.getDataManager(this, intent, adapter);
         dataManager.registerCallback(adapter);
         playerList.setAdapter(adapter);
         playerList.addOnScrollListener(new InfiniteScrollListener(layoutManager, dataManager) {
@@ -192,6 +157,63 @@ public class PlayerSheet extends Activity {
         });
         playerList.addOnScrollListener(titleElevation);
         dataManager.loadData(); // kick off initial load
+    }
+
+    public enum PlayerSheetMode {
+        MODE_SHOT_LIKES(R.plurals.fans) {
+            @Override
+            PaginatedDataManager getDataManager(Context context, Intent intent, final PlayerAdapter adapter) {
+                Shot shot = retrieveFromIntent(intent);
+                return new ShotLikesDataManager(context, shot.id) {
+                    @Override
+                    public void onDataLoaded(List<Like> likes) {
+                        adapter.addItems(likes);
+                    }
+                };
+            }
+
+            @Override
+            public int getQuantityForTitle(Intent intent) {
+                return (int) retrieveFromIntent(intent).likes_count;
+            }
+
+            @Override
+            Shot retrieveFromIntent(Intent intent) {
+                return intent.getParcelableExtra(EXTRA_SHOT);
+            }
+        },
+        MODE_FOLLOWERS(R.plurals.follower_count) {
+            @Override
+            PaginatedDataManager getDataManager(Context context, Intent intent, final PlayerAdapter adapter) {
+                User user = retrieveFromIntent(intent);
+                return new FollowersDataManager(context, user.id) {
+                    @Override
+                    public void onDataLoaded(List<Follow> followers) {
+                        adapter.addItems(followers);
+                    }
+                };
+            }
+
+            @Override
+            public int getQuantityForTitle(Intent intent) {
+                return retrieveFromIntent(intent).followers_count;
+            }
+
+            @Override
+            User retrieveFromIntent(Intent intent) {
+                return intent.getParcelableExtra(EXTRA_USER);
+            }
+        };
+
+        private int pluralsFile;
+
+        PlayerSheetMode(@PluralsRes int pluralsFile) {
+            this.pluralsFile = pluralsFile;
+        }
+
+        abstract PaginatedDataManager getDataManager(Context context, Intent intent, PlayerAdapter adapter);
+        abstract int getQuantityForTitle(Intent intent);
+        abstract Parcelable retrieveFromIntent(Intent intent);
     }
 
     @Override
