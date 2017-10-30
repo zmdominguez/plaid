@@ -37,6 +37,7 @@
         android:paddingBottom="@dimen/spacing_normal"
         android:paddingEnd="@dimen/padding_normal"
         android:paddingTop="@dimen/padding_normal"
+        android:onClick="@{() -> handlers.onLibraryLinkClick(library.link)}"
         android:stateListAnimator="@animator/raise" >
 
         <ImageView
@@ -82,6 +83,7 @@
             android:layout_alignParentEnd="true"
             android:layout_below="@id/library_description"
             android:text="@string/about_lib_link"
+            android:onClick="@{() -> handlers.onLibraryLinkClick(library.link)}"
             android:textColor="@color/text_secondary_dark"/>
 
     </io.plaidapp.ui.widget.ForegroundRelativeLayout>

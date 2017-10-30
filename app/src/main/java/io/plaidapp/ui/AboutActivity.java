@@ -285,18 +285,7 @@ public class AboutActivity extends Activity {
 
         public void bind(final Library lib) {
             libraryBinding.setLibrary(lib);
-            libraryBinding.getRoot().setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    LibraryHolder.this.onLibraryLinkClick(lib.link);
-                }
-            });
-            libraryBinding.libraryLink.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    LibraryHolder.this.onLibraryLinkClick(lib.link);
-                }
-            });
+            libraryBinding.setHandlers(this);
             libraryBinding.executePendingBindings();
         }
 
