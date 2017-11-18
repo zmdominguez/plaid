@@ -97,7 +97,6 @@ import io.plaidapp.ui.transitions.MorphTransform;
 import io.plaidapp.util.AnimUtils;
 import io.plaidapp.util.DrawableUtils;
 import io.plaidapp.util.ViewUtils;
-import io.plaidapp.util.glide.GlideApp;
 
 
 public class HomeActivity extends Activity {
@@ -261,7 +260,7 @@ public class HomeActivity extends Activity {
         filtersList.setItemAnimator(new FilterAdapter.FilterAnimator());
         filtersAdapter.registerFilterChangedCallback(filtersChangedCallbacks);
         dataManager.loadAllDataSources();
-        ItemTouchHelper.Callback callback = new FilterTouchHelperCallback(filtersAdapter);
+        ItemTouchHelper.Callback callback = new FilterTouchHelperCallback(filtersAdapter, this);
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(callback);
         itemTouchHelper.attachToRecyclerView(filtersList);
         checkEmptyState();
